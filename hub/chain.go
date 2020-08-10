@@ -3,10 +3,10 @@ package hub
 import (
 	"fmt"
 
-	iritaclient "gitlab.bianjie.ai/irita/irita-sdk-go"
-	iservice "gitlab.bianjie.ai/irita/irita-sdk-go/modules/service"
-	iritasdk "gitlab.bianjie.ai/irita/irita-sdk-go/types"
-	"gitlab.bianjie.ai/irita/irita-sdk-go/types/store"
+	iritaclient "github.com/bianjieai/irita-sdk-go"
+	iservice "github.com/bianjieai/irita-sdk-go/modules/service"
+	iritasdk "github.com/bianjieai/irita-sdk-go/types"
+	"github.com/bianjieai/irita-sdk-go/types/store"
 
 	"relayer/core"
 	"relayer/logging"
@@ -101,11 +101,11 @@ func (ic IritaHubChain) SendInterchainRequest(
 		return err
 	}
 
-	if len(requests) < 2 {
+	if len(requests) == 0 {
 		return fmt.Errorf("no service request initiated on %s", ic.ChainID)
 	}
 
-	logging.Logger.Infof("service request initiated on %s: %s", ic.ChainID, requests[1].ID)
+	logging.Logger.Infof("service request initiated on %s: %s", ic.ChainID, requests[0].ID)
 
 	return ic.ResponseListener(reqCtxID, cb)
 }
