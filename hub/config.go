@@ -3,7 +3,7 @@ package hub
 import (
 	"github.com/spf13/viper"
 
-	iritasdk "github.com/bianjieai/irita-sdk-go/types"
+	"github.com/irisnet/service-sdk-go/types"
 
 	cmn "relayer/common"
 	cfg "relayer/config"
@@ -16,7 +16,7 @@ var (
 	defaultKeyPath       = cmn.MustGetHomeDir()
 	defaultGas           = uint64(200000)
 	defaultFee           = "4point"
-	defaultBroadcastMode = iritasdk.Commit
+	defaultBroadcastMode = types.Commit
 	defaultKeyAlgorithm  = "sm2"
 )
 

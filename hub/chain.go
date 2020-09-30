@@ -3,10 +3,10 @@ package hub
 import (
 	"fmt"
 
-	iritaclient "github.com/bianjieai/irita-sdk-go"
-	iservice "github.com/bianjieai/irita-sdk-go/modules/service"
-	iritasdk "github.com/bianjieai/irita-sdk-go/types"
-	"github.com/bianjieai/irita-sdk-go/types/store"
+	service "github.com/irisnet/service-sdk-go"
+	servicetypes "github.com/irisnet/service-sdk-go/service"
+	"github.com/irisnet/service-sdk-go/types"
+	"github.com/irisnet/service-sdk-go/types/store"
 
 	"relayer/core"
 	"relayer/logging"
@@ -21,7 +21,7 @@ type IritaHubChain struct {
 	KeyName    string
 	Passphrase string
 
-	Client iritaclient.IRITAClient
+	ServiceClient service.ServiceClient
 }
 
 // NewIritaHubChain constructs a new Irita-Hub chain
@@ -44,7 +44,7 @@ func NewIritaHubChain(
 		keyPath = defaultKeyPath
 	}
 
-	config := iritasdk.ClientConfig{
+	config := types.ClientConfig{
 		NodeURI: nodeRPCAddr,
 		ChainID: chainID,
 		Gas:     defaultGas,
@@ -54,12 +54,12 @@ func NewIritaHubChain(
 	}
 
 	hub := IritaHubChain{
-		ChainID:     chainID,
-		NodeRPCAddr: nodeRPCAddr,
-		KeyPath:     keyPath,
-		KeyName:     keyName,
-		Passphrase:  passphrase,
-		Client:      iritaclient.NewIRITAClient(config),
+		ChainID:       chainID,
+		NodeRPCAddr:   nodeRPCAddr,
+		KeyPath:       keyPath,
+		KeyName:       keyName,
+		Passphrase:    passphrase,
+		ServiceClient: service.NewServiceClient(config),
 	}
 
 	return hub
@@ -80,23 +80,19 @@ func (ic IritaHubChain) SendInterchainRequest(
 	request core.InterchainRequestI,
 	cb core.ResponseCallback,
 ) error {
-	if request.GetServiceName() == "oracle" {
-		return ic.HandleOracleRequest(request, cb)
-	}
-
 	invokeServiceReq, err := ic.BuildServiceInvocationRequest(request)
 	if err != nil {
 		return err
 	}
 
-	reqCtxID, err := ic.Client.Service.InvokeService(invokeServiceReq, ic.BuildBaseTx())
+	reqCtxID, err := ic.ServiceClient.InvokeService(invokeServiceReq, ic.BuildBaseTx())
 	if err != nil {
 		return err
 	}
 
 	logging.Logger.Infof("request context created on %s: %s", ic.ChainID, reqCtxID)
 
-	requests, err := ic.Client.Service.QueryRequestsByReqCtx(reqCtxID, 1)
+	requests, err := ic.ServiceClient.QueryRequestsByReqCtx(reqCtxID, 1)
 	if err != nil {
 		return err
 	}
@@ -113,13 +109,13 @@ func (ic IritaHubChain) SendInterchainRequest(
 // BuildServiceInvocationRequest builds the service invocation request from the given interchain request
 func (ic IritaHubChain) BuildServiceInvocationRequest(
 	request core.InterchainRequestI,
-) (iservice.InvokeServiceRequest, error) {
-	serviceFeeCap, err := iritasdk.ParseDecCoins(request.GetServiceFeeCap())
+) (servicetypes.InvokeServiceRequest, error) {
+	serviceFeeCap, err := types.ParseDecCoins(request.GetServiceFeeCap())
 	if err != nil {
-		return iservice.InvokeServiceRequest{}, err
+		return servicetypes.InvokeServiceRequest{}, err
 	}
 
-	return iservice.InvokeServiceRequest{
+	return servicetypes.InvokeServiceRequest{
 		ServiceName:   request.GetServiceName(),
 		Providers:     []string{request.GetProvider()},
 		Input:         request.GetInput(),
@@ -142,44 +138,17 @@ func (ic IritaHubChain) ResponseListener(reqCtxID string, cb core.ResponseCallba
 
 	logging.Logger.Infof("waiting for the service response on %s", ic.ChainID)
 
-	_, err := ic.Client.Service.SubscribeServiceResponse(reqCtxID, callbackWrapper)
+	_, err := ic.ServiceClient.SubscribeServiceResponse(reqCtxID, callbackWrapper)
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-// HandleOracleRequest handles the oracle request
-func (ic IritaHubChain) HandleOracleRequest(
-	request core.InterchainRequestI,
-	cb core.ResponseCallback,
-) error {
-	value, err := ic.QueryOracle([]byte(request.GetInput()))
-	if err != nil {
-		return err
-	}
-
-	resp := core.ResponseAdaptor{
-		StatusCode:  200,
-		Output:      string(value),
-		ICRequestID: "",
-	}
-
-	cb("", resp)
-
-	return nil
-}
-
-// QueryOracle queries the oracle data by the given key
-func (ic IritaHubChain) QueryOracle(key []byte) (value []byte, err error) {
-	// TODO
-	return []byte{}, nil
 }
 
 // BuildBaseTx builds a base tx
-func (ic IritaHubChain) BuildBaseTx() iritasdk.BaseTx {
-	return iritasdk.BaseTx{
+func (ic IritaHubChain) BuildBaseTx() types.BaseTx {
+	return types.BaseTx{
 		From:     ic.KeyName,
 		Password: ic.Passphrase,
 	}
