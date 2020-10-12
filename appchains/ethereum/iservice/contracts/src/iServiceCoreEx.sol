@@ -103,7 +103,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
      * @param _timeout Request timeout
      * @param _callbackAddress Callback contract address
      * @param _callbackFunction Callback function selector
-     * @return Request id
+     * @return requestID Request id
      */
     function callService(
         string calldata _serviceName,

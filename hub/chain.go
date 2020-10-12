@@ -3,8 +3,8 @@ package hub
 import (
 	"fmt"
 
-	service "github.com/irisnet/service-sdk-go"
-	servicetypes "github.com/irisnet/service-sdk-go/service"
+	servicesdk "github.com/irisnet/service-sdk-go"
+	"github.com/irisnet/service-sdk-go/service"
 	"github.com/irisnet/service-sdk-go/types"
 	"github.com/irisnet/service-sdk-go/types/store"
 
@@ -21,13 +21,14 @@ type IritaHubChain struct {
 	KeyName    string
 	Passphrase string
 
-	ServiceClient service.ServiceClient
+	ServiceClient servicesdk.ServiceClient
 }
 
 // NewIritaHubChain constructs a new Irita-Hub chain
 func NewIritaHubChain(
 	chainID string,
 	nodeRPCAddr string,
+	nodeGRPCAddr string,
 	keyPath string,
 	keyName string,
 	passphrase string,
@@ -40,17 +41,29 @@ func NewIritaHubChain(
 		nodeRPCAddr = defaultNodeRPCAddr
 	}
 
+	if len(nodeGRPCAddr) == 0 {
+		nodeGRPCAddr = defaultNodeGRPCAddr
+	}
+
 	if len(keyPath) == 0 {
 		keyPath = defaultKeyPath
 	}
 
+	fee, err := types.ParseDecCoins(defaultFee)
+	if err != nil {
+		panic(err)
+	}
+
 	config := types.ClientConfig{
-		NodeURI: nodeRPCAddr,
-		ChainID: chainID,
-		Gas:     defaultGas,
-		Mode:    defaultBroadcastMode,
-		Algo:    defaultKeyAlgorithm,
-		KeyDAO:  store.NewFileDAO(keyPath),
+		NodeURI:  nodeRPCAddr,
+		GRPCAddr: nodeGRPCAddr,
+		ChainID:  chainID,
+		Gas:      defaultGas,
+		Fee:      fee,
+		Mode:     defaultBroadcastMode,
+		Algo:     defaultKeyAlgorithm,
+		KeyDAO:   store.NewFileDAO(keyPath),
+		Level:    "debug",
 	}
 
 	hub := IritaHubChain{
@@ -59,7 +72,7 @@ func NewIritaHubChain(
 		KeyPath:       keyPath,
 		KeyName:       keyName,
 		Passphrase:    passphrase,
-		ServiceClient: service.NewServiceClient(config),
+		ServiceClient: servicesdk.NewServiceClient(config),
 	}
 
 	return hub
@@ -67,7 +80,14 @@ func NewIritaHubChain(
 
 // MakeIritaHubChain builds an Irita-Hub from the given config
 func MakeIritaHubChain(config Config) IritaHubChain {
-	return NewIritaHubChain(config.ChainID, config.NodeRPCAddr, config.KeyPath, config.KeyName, config.Passphrase)
+	return NewIritaHubChain(
+		config.ChainID,
+		config.NodeRPCAddr,
+		config.NodeGRPCAddr,
+		config.KeyPath,
+		config.KeyName,
+		config.Passphrase,
+	)
 }
 
 // GetChainID implements IritaHubChainI
@@ -109,13 +129,13 @@ func (ic IritaHubChain) SendInterchainRequest(
 // BuildServiceInvocationRequest builds the service invocation request from the given interchain request
 func (ic IritaHubChain) BuildServiceInvocationRequest(
 	request core.InterchainRequestI,
-) (servicetypes.InvokeServiceRequest, error) {
+) (service.InvokeServiceRequest, error) {
 	serviceFeeCap, err := types.ParseDecCoins(request.GetServiceFeeCap())
 	if err != nil {
-		return servicetypes.InvokeServiceRequest{}, err
+		return service.InvokeServiceRequest{}, err
 	}
 
-	return servicetypes.InvokeServiceRequest{
+	return service.InvokeServiceRequest{
 		ServiceName:   request.GetServiceName(),
 		Providers:     []string{request.GetProvider()},
 		Input:         request.GetInput(),

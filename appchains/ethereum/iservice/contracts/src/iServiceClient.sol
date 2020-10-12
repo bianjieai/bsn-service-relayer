@@ -41,7 +41,7 @@ contract iServiceClient {
      * @param _timeout Service request timeout
      * @param _callbackAddress Callback contract address
      * @param _callbackFunction Callback function selector
-     * @return Request id
+     * @return requestID Request id
      */
     function sendIServiceRequest(
         string calldata _serviceName,

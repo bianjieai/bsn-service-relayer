@@ -61,7 +61,7 @@ func KeysAddCmd() *cobra.Command {
 func KeysShowCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "show [name] [passphrase] [config-file-path]",
-		Short: "Show the key infomation by name",
+		Short: "Show the key information by name",
 		Args:  cobra.RangeArgs(2, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			configFileName := ""
