@@ -19,7 +19,8 @@ require (
 
 replace (
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.2-alpha.regen.4
-	github.com/irisnet/service-sdk-go => github.com/secret2830/service-sdk-go v0.0.0-20200930025908-91ed6ca17b1b
+	// github.com/irisnet/service-sdk-go => github.com/secret2830/service-sdk-go v0.0.0-20200930025908-91ed6ca17b1b
+	github.com/irisnet/service-sdk-go => /Users/bianjie/develop/service-sdk-go-2/service-sdk-go
 	github.com/keybase/go-keychain => github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4
 	github.com/tendermint/tendermint => github.com/bianjieai/tendermint v0.33.4-irita-200703.0.20200925112439-d4196a88a285
 )

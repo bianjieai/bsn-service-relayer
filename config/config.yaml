@@ -4,7 +4,7 @@ base:
 
 # irita-hub config
 hub:
-    chain_id: irita-hub
+    chain_id: cschain
     node_rpc_addr: http://127.0.0.1:26657
     node_grpc_addr: 127.0.0.1:9090
     key_path: .data/hub

@@ -123,7 +123,7 @@ func (ic IritaHubChain) SendInterchainRequest(
 
 	logging.Logger.Infof("service request initiated on %s: %s", ic.ChainID, requests[0].ID)
 
-	return ic.ResponseListener(reqCtxID, cb)
+	return ic.ResponseListener(reqCtxID, requests[0].ID, cb)
 }
 
 // BuildServiceInvocationRequest builds the service invocation request from the given interchain request
@@ -145,7 +145,20 @@ func (ic IritaHubChain) BuildServiceInvocationRequest(
 }
 
 // ResponseListener gets and handles the response of the given request context ID by event subscription
-func (ic IritaHubChain) ResponseListener(reqCtxID string, cb core.ResponseCallback) error {
+func (ic IritaHubChain) ResponseListener(reqCtxID string, requestID string, cb core.ResponseCallback) error {
+	response, err := ic.ServiceClient.QueryServiceResponse(requestID)
+	if err == nil {
+		resp := core.ResponseAdaptor{
+			StatusCode:  200,
+			Output:      response.Output,
+			ICRequestID: requestID,
+		}
+
+		cb(requestID, resp)
+
+		return nil
+	}
+
 	callbackWrapper := func(reqCtxID, requestID, response string) {
 		resp := core.ResponseAdaptor{
 			StatusCode:  200,
@@ -158,7 +171,7 @@ func (ic IritaHubChain) ResponseListener(reqCtxID string, cb core.ResponseCallba
 
 	logging.Logger.Infof("waiting for the service response on %s", ic.ChainID)
 
-	_, err := ic.ServiceClient.SubscribeServiceResponse(reqCtxID, callbackWrapper)
+	_, err = ic.ServiceClient.SubscribeServiceResponse(reqCtxID, callbackWrapper)
 	if err != nil {
 		return err
 	}
