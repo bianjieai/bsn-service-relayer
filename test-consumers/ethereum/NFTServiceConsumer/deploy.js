@@ -2,6 +2,10 @@ var Web3 = require('web3');
 var Tx = require('ethereumjs-tx').Transaction;
 var solc = require('solc');
 var fs = require('fs');
+var log4js = require('log4js');
+
+var logger = log4js.getLogger('normal');
+logger.level = 'info';
 
 // ethereum config
 var chainID = 'ropsten';
@@ -52,14 +56,16 @@ web3.eth.getTransactionCount(fromAddress)
         tx.sign(privKey);
         var serializedTx = tx.serialize();
         
-        // initiate nft minting transaction
+        logger.info('starting to deploy contract');
+
+        // initiate contract deployment transaction
         web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
         .on('transactionHash', function(hash){
-            console.log('tx hash: %s', hash);
+            logger.info('contract deployment tx sent, tx hash: %s', hash);
         })
         .on('receipt', function(receipt){
-            console.log('tx minted, contract address: %s', receipt.contractAddress);
+            logger.info('contract deployment tx minted, contract address: %s', receipt.contractAddress);
         })
-        .on('error', console.error);
+        .on('error', logger.error);
 })
-.catch(console.error);
+.catch(logger.error);

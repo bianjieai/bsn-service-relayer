@@ -1,4 +1,4 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.5.0;
 
 /**
  * @title iService interface
@@ -110,7 +110,7 @@ contract iServiceClient {
  * @title Contract for inter-chain NFT minting powered by iService
  * The service is supported by price service
  */
-contract NFTService is iServiceClient {
+contract NFTServiceConsumer is iServiceClient {
     // price service variables
     string private priceServiceName = "oracle-price"; // price service name
     string private priceRequestInput = '{"header":{},"body":{"pair":"usdt-eth"}}'; // price request input
@@ -187,6 +187,24 @@ contract NFTService is iServiceClient {
     }
 
     /*
+     * @notice Start workflow for minting nft
+     * @param _args String arguments for minting nft
+     */
+    function mintV2(
+        string calldata _args
+    )
+        external
+    {
+        sendIServiceRequest(
+            nftServiceName,
+            _args,
+            defaultTimeout,
+            address(this),
+            this.onNFTMinted.selector
+        );
+    }
+
+    /*
      * @notice Request Eth price for minting NFT 
      */
     function _requestPrice () internal {
@@ -248,7 +266,6 @@ contract NFTService is iServiceClient {
     {
         nftID = _parseNFTID(_output);
 
-
         emit NFTMinted(_requestID, nftID);
     }
     
@@ -263,14 +280,7 @@ contract NFTService is iServiceClient {
         pure
         returns (string memory)
     {
-        uint256 returnValue;
-        JsmnSolLib.Token[] memory tokens;
-        uint actualNum;
-
-        (returnValue, tokens, actualNum) = JsmnSolLib.parse(_output, 10);
-
-        JsmnSolLib.Token memory t = tokens[4];
-        return JsmnSolLib.getBytes(_output, t.start, t.end);
+        return _parseJSON(_output, 10, 4);
     }
     
      /*
@@ -284,14 +294,7 @@ contract NFTService is iServiceClient {
         pure
         returns (string memory)
     {
-        uint256 returnValue;
-        JsmnSolLib.Token[] memory tokens;
-        uint actualNum;
-
-        (returnValue, tokens, actualNum) = JsmnSolLib.parse(_output, 10);
-
-        JsmnSolLib.Token memory t = tokens[4];
-        return JsmnSolLib.getBytes(_output, t.start, t.end);
+        return _parseJSON(_output, 10, 6);
     }
     
     /*
@@ -313,8 +316,10 @@ contract NFTService is iServiceClient {
         pure
         returns (string memory)
     {
-        string memory abiEncoded = string(abi.encodePacked(_to, _amount, _metaID, _setPrice, _isForSale));
-        return strConcat(strConcat('{"header":{},"body":{"abi_encoded":"', abiEncoded),'"}}');
+        // string memory abiEncoded = string(abi.encodePacked(_to, _amount, _metaID, _setPrice, _isForSale));
+        // return _strConcat(_strConcat('{"header":{},"body":{"abi_encoded":"0x', abiEncoded),'"}}');
+        
+        return '{"header":{},"body":{"to":"0xaa27bb5ef6e54a9019be7ade0d0fc514abb4d03b","amount_to_mint":"1","meta_id":"-Z-2fJxzCoFJ0MOU-zA3-tiIh7dK6FjDruAxgxW6PEs","set_price":"2000000000000000","is_for_sale":true}}';
     }
 
     /*
@@ -322,11 +327,11 @@ contract NFTService is iServiceClient {
      * @param _first First string
      * @param _second Second string
      */
-    function strConcat(
+    function _strConcat(
         string memory _first, 
         string memory _second
     ) 
-        public
+        internal
         pure
         returns(string memory)
     {
@@ -344,6 +349,104 @@ contract NFTService is iServiceClient {
 
         return string(res);
     }
+    
+    /*
+     * @notice Parse the NFT id from output
+     * @param _json JSON to be parsed
+     * @param _maxElements Maximum element numbers in JSON
+     * @param _pos Position of the element to be parsed
+     */
+    function _parseJSON(
+        string memory _json,
+        uint _maxElements,
+        uint _pos
+    ) 
+        internal
+        pure
+        returns (string memory)
+    {
+        uint256 returnValue;
+        JsmnSolLib.Token[] memory tokens;
+        uint actualNum;
+
+        (returnValue, tokens, actualNum) = JsmnSolLib.parse(_json, _maxElements);
+        
+        require(returnValue == 0 && actualNum >= _pos, "failed to parse json");
+
+        JsmnSolLib.Token memory t = tokens[_pos];
+        return JsmnSolLib.getBytes(_json, t.start, t.end);
+    }
+    
+    /*
+     * @notice Convert the byte array to a hex string
+     * @param _data Source bytes
+     */
+    // function _bytes2Hex(bytes memory _data) returns (string memory) {
+    //     uint ascii_0 = 48;
+    //     uint ascii_A = 65;
+    //     uint ascii_a = 97;
+
+    //     bytes memory res = new bytes((_data.length * 2);
+
+    //     for (uint i = 0; i < _data.length; i++) {
+    //         uint b = uint(_data[i]);
+    //         string memory str = JsmnSolLib.uint2str(b);
+    //         bytes memory strBz = bytes(str)
+            
+    //         if (strBz.length == 1) {
+    //             res[i] = bytes1("0");
+    //             res[i+1] = bytes1(str);
+    //         } else {
+    //             res[i] = bytes1(strBz[0]);
+    //             res[i+1] = bytes1(strBz[1]);
+    //         }
+            
+    //     //  if (_a > 96) {
+    //     //         b[i] = _a - 97 + 10;
+    //     //  }
+    //     //     else if (_a > 66) {
+    //     //         b[i] = _a - 65 + 10;
+    //     //     }
+    //     //     else {
+    //     //         b[i] = _a - 48;
+    //     //     }
+    //     // }
+
+    //     // bytes memory c = new bytes(b.length / 2);
+    //     // for (uint _i = 0; _i < b.length; _i += 2) {
+    //     //     c[_i / 2] = byte(b[_i] * 16 + b[_i + 1]);
+    //     // }
+
+    //     // return c;
+        
+    //     // uint _ascii_0 = 48;
+    //     // uint _ascii_A = 65;
+    //     // uint _ascii_a = 97;
+
+    //     // bytes memory a = bytes(data);
+    //     // uint[] memory b = new uint[](a.length);
+
+    //     // for (uint i = 0; i < a.length; i++) {
+    //     //     uint _a = uint(a[i]);
+
+    //     //     if (_a > 96) {
+    //     //         b[i] = _a - 97 + 10;
+    //     //     }
+    //     //     else if (_a > 66) {
+    //     //         b[i] = _a - 65 + 10;
+    //     //     }
+    //     //     else {
+    //     //         b[i] = _a - 48;
+    //     //     }
+    //     // }
+
+    //     // bytes memory c = new bytes(b.length / 2);
+    //     // for (uint _i = 0; _i < b.length; _i += 2) {
+    //     //     c[_i / 2] = byte(b[_i] * 16 + b[_i + 1]);
+    //     // }
+
+    //     // return c;
+    // }
 }
 
 /*
@@ -655,7 +758,7 @@ library JsmnSolLib {
         uint j = i;
         uint len;
         while (j != 0){
-            len++;
+            len++; 
             j /= 10;
         }
         bytes memory bstr = new bytes(len);
@@ -692,5 +795,4 @@ library JsmnSolLib {
         else
             return 0;
     }
-
 }

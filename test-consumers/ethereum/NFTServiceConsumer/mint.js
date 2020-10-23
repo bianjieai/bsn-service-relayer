@@ -1,6 +1,10 @@
 var Web3 = require('web3');
 var Tx = require('ethereumjs-tx').Transaction;
-var fs = require('fs')
+var fs = require('fs');
+var log4js = require('log4js');
+
+var logger = log4js.getLogger('normal');
+logger.level = 'info';
 
 // ethereum config
 var chainID = 'ropsten';
@@ -11,7 +15,7 @@ var gasPrice = 20000000000;
 var gasLimit = 500000;
 
 // contract config
-var consumerContractAddr = '0x37C9d33F4B1090c2D8edED3C89Be0b861799f58E';
+var consumerContractAddr = '0xEDa91e416044f5BB90F46bcB9f26986306Ad3864';
 var abiPath = './artifacts/NFTServiceConsumer.json';
 
 // web3 instance
@@ -32,7 +36,7 @@ var consumerContract = new web3.eth.Contract(abi, consumerContractAddr);
 // nft variables
 var destAddress = '0xaa27bb5ef6e54a9019be7ade0d0fc514abb4d03b';
 var amount = 1;
-var metaID = 'test-id';
+var metaID = '-Z-2fJxzCoFJ0MOU-zA3-tiIh7dK6FjDruAxgxW6PEs';
 var setPrice = 1; // price in USDT
 var isForSale = true;
 
@@ -66,33 +70,42 @@ web3.eth.getTransactionCount(fromAddress)
         tx.sign(privKey);
         var serializedTx = tx.serialize();
         
+        logger.info(
+            'starting to mint NFT, to:%s, amount:%d, metaID:%s, setPrice:%s, isForSale:%s',
+            destAddress,
+            amount,
+            metaID,
+            setPrice,
+            isForSale
+        );
+
         // initiate nft minting transaction
         web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
         .on('transactionHash', function(hash){
-            console.log('tx hash: %s', hash);
+            logger.info('nft minting tx sent, tx hash: %s', hash);
         })
-        .on('error', console.error);
+        .on('error', logger.error);
 })
-.catch(console.error);
+.catch(logger.error);
 
 // listen to events
 consumerContract.events.allEvents()
 .on('data', function(event){
     switch (event.event) {
         case 'IServiceRequestSent':
-            console.log('request sent: %s', event.returnValues._requestID);
+            logger.info('iservice request sent, request id: %s', event.returnValues._requestID);
             break;
         
         case 'PriceSet':
-            console.log('price got: %s', event.returnValues._price);
+            logger.info('usdt-eth price got: %s', event.returnValues._price);
             break;
         
         case 'NFTMinted':
-            console.log('nft minted: %s', event.returnValues._nftID);
+            logger.info('nft minted: %s', event.returnValues._nftID);
             break;
         
         default:
-            console.log('event triggered: %s', event.event);
+            logger.info('event triggered: %s', event.event);
     }
 })
-.on('error', console.error);
+.on('error', logger.error);

@@ -93,8 +93,9 @@ func (r Relayer) Start() {
 	err := r.AppChain.InterchainEventListener(r.HandleInterchainEvent)
 	if err != nil {
 		r.Logger.Errorf(
-			"failed to listen to the interchain event on %s",
+			"failed to listen to the interchain events on %s: %s",
 			r.AppChain.GetChainID(),
+			err,
 		)
 	}
 }

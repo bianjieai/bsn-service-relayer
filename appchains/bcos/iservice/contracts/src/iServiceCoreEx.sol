@@ -1,4 +1,4 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.10;
 pragma experimental "ABIEncoderV2";
 
 import "./vendor/Ownable.sol";
@@ -37,7 +37,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @title Event triggered when the service invocation is initiated
+     * @notice Event triggered when the service invocation is initiated
      * @param _requestID Request id
      * @param _serviceName Service name
      * @param _input Request input
@@ -46,7 +46,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     event ServiceInvoked(bytes32 indexed _requestID, string _serviceName, string _input, uint256 _timeout);
 
     /**
-     * @title Constructor
+     * @notice Constructor
      * @param _relayer Relayer address
      */
     constructor(address _relayer)
@@ -59,7 +59,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @title Make sure that the request is valid
+     * @notice Make sure that the request is valid
      * @param _serviceName Service name
      * @param _input Request input
      * @param _timeout Request timeout
@@ -78,7 +78,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @title Make sure that the request exists and has not been responded
+     * @notice Make sure that the request exists and has not been responded
      * @param _requestID Request id
      */
     modifier validRequest(bytes32 _requestID) {
@@ -89,7 +89,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
     
     /** 
-     * @title Make sure that the sender is the relayer
+     * @notice Make sure that the sender is the relayer
      */
     modifier onlyRelayer() {
         require(msg.sender == relayer, "iServiceCoreEx: sender is not the relayer");
@@ -97,7 +97,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @title Initiate a service invocation
+     * @notice Initiate a service invocation
      * @param _serviceName Service name
      * @param _input Request input
      * @param _timeout Request timeout
@@ -129,7 +129,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @title Set the response of the specified service request
+     * @notice Set the response of the specified service request
      * @param _requestID Request id
      * @param _errMsg Error message of the service invocation
      * @param _output Response output
@@ -166,7 +166,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @title Retrieve the response of the given service request 
+     * @notice Retrieve the response of the given service request 
      * @param _requestID Request id
      * @return Response
      */
@@ -181,7 +181,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @title Set the relayer address
+     * @notice Set the relayer address
      * @param _address Relayer address
      */
     function setRelayer(
@@ -195,7 +195,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
     
     /**
-     * @title Send the service request
+     * @notice Send the service request
      * @param _req Request
      */
     function _sendRequest(

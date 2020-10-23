@@ -147,9 +147,10 @@ func (ic IritaHubChain) BuildServiceInvocationRequest(
 // ResponseListener gets and handles the response of the given request context ID by event subscription
 func (ic IritaHubChain) ResponseListener(reqCtxID string, requestID string, cb core.ResponseCallback) error {
 	response, err := ic.ServiceClient.QueryServiceResponse(requestID)
-	if err == nil {
+	if response.RequestContextID == reqCtxID {
 		resp := core.ResponseAdaptor{
 			StatusCode:  200,
+			Result:      response.Result,
 			Output:      response.Output,
 			ICRequestID: requestID,
 		}

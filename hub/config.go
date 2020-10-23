@@ -16,7 +16,7 @@ var (
 	defaultNodeGRPCAddr  = "127.0.0.1:9090"
 	defaultKeyPath       = cmn.MustGetHomeDir()
 	defaultGas           = uint64(200000)
-	defaultFee           = "4stake"
+	defaultFee           = "4point"
 	defaultBroadcastMode = types.Commit
 	defaultKeyAlgorithm  = "sm2"
 )

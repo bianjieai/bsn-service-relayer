@@ -11,7 +11,7 @@ endif
 
 install: go.sum
 	@echo "installing relayer..."
-	@go build -mod=readonly -o $${GOBIN-$${GOPATH-$$HOME/go}/bin}/ relayer/cmd/relayer
+	@go build -mod=readonly -o $${GOBIN-$${GOPATH-$$HOME/go}/bin}/relayer-bcos relayer/cmd/relayer
 
 test-eth:
 	@echo "sending the interchain request to ethereum for testing..."
