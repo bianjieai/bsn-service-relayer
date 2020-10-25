@@ -1,6 +1,6 @@
 base:
     # application chain name
-    app_chain_name: eth
+    app_chain_name: bcos
 
 # irita-hub config
 hub:
@@ -37,5 +37,5 @@ fabric:
 # bcos config
 bcos:
     config_file: ./appchains/bcos/config.toml
-    iservice_core_addr: 0xf5b0d00f87781fa36f00a8f0ea8e8d4290416659
-    iservice_market_addr: 0xf5b0d00f87781fa36f00a8f0ea8e8d4290416659
+    iservice_core_addr: 0xe9708c47B560AC923E5a9096669fC71E8bD771Cb
+    iservice_market_addr: 0x55eDef761E7d489b39dB2D38250b2496725Cd722

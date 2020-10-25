@@ -43,7 +43,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
      * @param _input Request input
      * @param _timeout Request timeout
      */
-    event ServiceInvoked(bytes32 indexed _requestID, string _serviceName, string _input, uint256 _timeout);
+    event ServiceInvoked(bytes32 _requestID, string _serviceName, string _input, uint256 _timeout);
 
     /**
      * @notice Constructor

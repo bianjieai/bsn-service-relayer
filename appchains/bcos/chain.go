@@ -3,12 +3,14 @@ package bcos
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math/big"
+	"strings"
 
 	ethcmn "github.com/ethereum/go-ethereum/common"
 
-	"github.com/FISCO-BCOS/go-sdk/abi/bind"
+	"github.com/FISCO-BCOS/go-sdk/abi"
 	bcosclient "github.com/FISCO-BCOS/go-sdk/client"
 	"github.com/FISCO-BCOS/go-sdk/conf"
 	"github.com/FISCO-BCOS/go-sdk/core/types"
@@ -26,6 +28,7 @@ const (
 type BCOSChain struct {
 	ChainID string
 	Client  *bcosclient.Client
+	EventCh chan *iservice.IServiceCoreExServiceInvoked
 
 	IServiceCoreAddr   string // iService Core Extension contract address
 	IServiceMarketAddr string // iService Market Extension contract address
@@ -68,6 +71,7 @@ func NewBCOSChain(
 	bcos := BCOSChain{
 		ChainID: ChainIDPrefix + chainID.String(),
 		Client:  client,
+		EventCh: make(chan *iservice.IServiceCoreExServiceInvoked),
 
 		IServiceCoreAddr:   iServiceCoreAddr,
 		IServiceMarketAddr: iServiceMarketAddr,
@@ -95,20 +99,30 @@ func (b BCOSChain) GetChainID() string {
 
 // InterchainEventListener implements AppChainI
 func (b BCOSChain) InterchainEventListener(cb core.InterchainEventHandler) error {
-	options := bind.WatchOpts{}
-	ch := make(chan *iservice.IServiceCoreExServiceInvoked)
+	// options := bind.WatchOpts{}
+	// ch := make(chan *iservice.IServiceCoreExServiceInvoked)
 
-	sub, err := b.IServiceCoreSession.Contract.WatchServiceInvoked(&options, ch, nil)
-	if err != nil {
-		return err
-	}
+	// sub, err := b.IServiceCoreSession.Contract.WatchServiceInvoked(&options, ch, nil)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// for {
+	// 	select {
+	// 	case e := <-ch:
+	// 		fmt.Printf("%+v", e)
+	// 		cb(b.buildInterchainEvent(e))
+	// 	case err := <-sub.Err():
+	// 		logging.Logger.Errorf("Error on event subscription: %s", err)
+	// 	}
+	// }
+
+	b.Client.SubscribeBlockNumberNotify(b.onNewBlock)
 
 	for {
 		select {
-		case e := <-ch:
+		case e := <-b.EventCh:
 			cb(b.buildInterchainEvent(e))
-		case err := <-sub.Err():
-			logging.Logger.Errorf("Error on event subscription: %s", err)
 		}
 	}
 }
@@ -193,4 +207,46 @@ func (b BCOSChain) waitForReceipt(tx *types.Transaction, name string) error {
 	logging.Logger.Infof("%s: transaction %s execution succeeded", name, tx.Hash().Hex())
 
 	return nil
+}
+
+// onNewBlock handles the new block event
+func (b BCOSChain) onNewBlock(blockNumber int64) {
+	// TODO: optimize
+	txBz, err := b.Client.GetTransactionByBlockNumberAndIndex(context.Background(), fmt.Sprintf("0x%x", blockNumber), "0x0")
+	if err == nil {
+		tx := make(map[string]string)
+		err := json.Unmarshal(txBz, &tx)
+
+		if err == nil {
+			receipt, err := b.Client.GetTransactionReceipt(context.Background(), tx["hash"])
+			if err == nil {
+				b.parseServiceInvokedEvent(receipt)
+			}
+		}
+	}
+}
+
+// parseServiceInvokedEvent parses the ServiceInvoked event
+func (b BCOSChain) parseServiceInvokedEvent(receipt *types.Receipt) (*iservice.IServiceCoreExServiceInvoked, error) {
+	parsed, err := abi.JSON(strings.NewReader(iservice.IServiceCoreExABI))
+	if err != nil {
+		return nil, fmt.Errorf("parse ABI failed, err: %s", err)
+	}
+
+	for _, log := range receipt.Logs {
+		data, err := hex.DecodeString(log.Data[2:])
+		if err != nil {
+			continue
+		}
+
+		var event iservice.IServiceCoreExServiceInvoked
+		err = parsed.Unpack(&event, "ServiceInvoked", data)
+		if err != nil {
+			continue
+		}
+
+		b.EventCh <- &event
+	}
+
+	return nil, nil
 }
