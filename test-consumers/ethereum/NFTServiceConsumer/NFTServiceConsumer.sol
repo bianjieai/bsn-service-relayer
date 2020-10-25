@@ -187,6 +187,24 @@ contract NFTService is iServiceClient {
     }
 
     /*
+     * @notice Start workflow for minting nft
+     * @param _args String arguments for minting nft
+     */
+    function mintV2(
+        string calldata _args
+    )
+        external
+    {
+        sendIServiceRequest(
+            nftServiceName,
+            _args,
+            defaultTimeout,
+            address(this),
+            this.onNFTMinted.selector
+        );
+    }
+
+    /*
      * @notice Request Eth price for minting NFT 
      */
     function _requestPrice () internal {

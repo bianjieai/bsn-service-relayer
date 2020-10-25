@@ -15,7 +15,7 @@ var gasPrice = 20000000000;
 var gasLimit = 500000;
 
 // contract config
-var consumerContractAddr = '0xEDa91e416044f5BB90F46bcB9f26986306Ad3864';
+var consumerContractAddr = '0x87eFCd928Fa49B50177FFd7db144f6cEc051cB55';
 var abiPath = './artifacts/NFTServiceConsumer.json';
 
 // web3 instance
