@@ -1,6 +1,6 @@
 base:
-    # application chain name
-    app_chain_name: bcos
+    app_chain_name: bcos # application chain name
+    store_path: .db # store path
 
 # irita-hub config
 hub:
@@ -15,7 +15,7 @@ hub:
 eth:
     chain_id: ropsten
     node_rpc_addr: wss://ropsten.infura.io/ws/v3/56e89587eacb4fbe8655e4c44b146237
-    gas_limit: 5000000
+    gas_limit: 2000000
     gas_price: 5000000000
     key: 5dee232c8be5cb81f0ae6fddb45243fc6208192c16aef275ef41b019df765d1f
     passphrase: 123456789
@@ -37,5 +37,6 @@ fabric:
 # bcos config
 bcos:
     config_file: ./appchains/bcos/config.toml
-    iservice_core_addr: 0xe9708c47B560AC923E5a9096669fC71E8bD771Cb
-    iservice_market_addr: 0x55eDef761E7d489b39dB2D38250b2496725Cd722
+    iservice_core_addr: 0xe9708c47b560ac923e5a9096669fc71e8bd771cb
+    iservice_market_addr: 0x55edef761e7d489b39db2d38250b2496725cd722
+    monitor_interval: 1 # chain monitoring interval in seconds

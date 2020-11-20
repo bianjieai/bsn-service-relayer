@@ -25,7 +25,7 @@ var (
 // KeysAddCmd implements the keys add command
 func KeysAddCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "add [name] [passphrase] [config-file-path]",
+		Use:   "add [name] [passphrase] [config-file]",
 		Short: "Generate a new key",
 		Args:  cobra.RangeArgs(2, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -61,7 +61,7 @@ func KeysAddCmd() *cobra.Command {
 // KeysShowCmd implements the keys show command
 func KeysShowCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show [name] [passphrase] [config-file-path]",
+		Use:   "show [name] [passphrase] [config-file]",
 		Short: "Show the key information by name",
 		Args:  cobra.RangeArgs(2, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -97,7 +97,7 @@ func KeysShowCmd() *cobra.Command {
 // KeysImportCmd implements the keys import command
 func KeysImportCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "import [name] [passphrase] [key-file] [config-file-path]",
+		Use:   "import [name] [passphrase] [key-file] [config-file]",
 		Short: "Import a key from the private key armor file",
 		Args:  cobra.RangeArgs(3, 4),
 		RunE: func(cmd *cobra.Command, args []string) error {

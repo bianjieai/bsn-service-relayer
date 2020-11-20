@@ -83,7 +83,7 @@ type IServiceBinding interface {
 }
 
 // InterchainEventHandler defines the interchain event callback interface
-type InterchainEventHandler func(icEvent InterchainEventI)
+type InterchainEventHandler func(icEvent InterchainEventI) error
 
 // ResponseCallback defines the response callback interface
 type ResponseCallback func(icRequestID string, response ResponseI)

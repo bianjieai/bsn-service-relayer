@@ -76,9 +76,9 @@ consumerInstance.$deploy(web3jService, iServiceCoreAddr, 0)
     );
 
     // start to mint NFT
-    consumerInstance.mint(destAddress, amount, metaID, setPrice, isForSale)
+    consumerInstance.mintV2('{"header":{},"body":{"to":"0xaa27bb5ef6e54a9019be7ade0d0fc514abb4d03b","amount_to_mint":"1","meta_id":"-Z-2fJxzCoFJ0MOU-zA3-tiIh7dK6FjDruAxgxW6PEs"}}')
     .then(res => {
-        logger.info("minting transaction succeeded");
+        logger.info('minting transaction succeeded');
     });
 })
 .catch(console.error);

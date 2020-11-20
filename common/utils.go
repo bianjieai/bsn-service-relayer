@@ -1,6 +1,8 @@
 package common
 
 import (
+	"fmt"
+	"math/big"
 	"os"
 )
 
@@ -13,4 +15,16 @@ func MustGetHomeDir() string {
 	}
 
 	return homeDir
+}
+
+// Hex2Decimal converts the given hex string to a decimal number
+func Hex2Decimal(hex string) (int64, error) {
+	i := new(big.Int)
+
+	i, ok := i.SetString(hex, 16)
+	if !ok {
+		return -1, fmt.Errorf("Cannot parse hex string to Int")
+	}
+
+	return i.Int64(), nil
 }

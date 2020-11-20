@@ -68,4 +68,4 @@ web3.eth.getTransactionCount(fromAddress)
         })
         .on('error', logger.error);
 })
-.catch(logger.error);
+.catch(console.error);

@@ -12,7 +12,7 @@ var nodeRPCAddr = 'wss://ropsten.infura.io/ws/v3/56e89587eacb4fbe8655e4c44b14623
 var fromAddress = '0xaa27bb5ef6e54a9019be7ade0d0fc514abb4d03b';
 var privateKey = '5dee232c8be5cb81f0ae6fddb45243fc6208192c16aef275ef41b019df765d1f';
 var gasPrice = 20000000000;
-var gasLimit = 500000;
+var gasLimit = 200000;
 
 // contract config
 var consumerContractAddr = '0x87eFCd928Fa49B50177FFd7db144f6cEc051cB55';
@@ -41,12 +41,16 @@ var setPrice = 1; // price in USDT
 var isForSale = true;
 
 // transaction data for minting nft 
-var data = consumerContract.methods.mint(
-    destAddress,
-    amount,
-    metaID,
-    setPrice,
-    isForSale
+// var data = consumerContract.methods.mint(
+//     destAddress,
+//     amount,
+//     metaID,
+//     setPrice,
+//     isForSale
+// ).encodeABI();
+
+var data = consumerContract.methods.mintV2(
+    '{"header":{},"body":{"to":"0xaa27bb5ef6e54a9019be7ade0d0fc514abb4d03b","amount_to_mint":"1","meta_id":"test"}}'
 ).encodeABI();
 
 // build, sign and send transaction
@@ -86,7 +90,7 @@ web3.eth.getTransactionCount(fromAddress)
         })
         .on('error', logger.error);
 })
-.catch(logger.error);
+.catch(console.error);
 
 // listen to events
 consumerContract.events.allEvents()

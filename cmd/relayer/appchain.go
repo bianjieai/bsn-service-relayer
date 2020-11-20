@@ -20,7 +20,7 @@ var (
 // AddServiceBindingCmd implements the appchain add-svc-binding command
 func AddServiceBindingCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "add-svc-binding [svc-name] [schemas] [provider] [svc-fee] [qos] [config-file-path]",
+		Use:   "add-svc-binding [svc-name] [schemas] [provider] [svc-fee] [qos] [config-file]",
 		Short: "Add the specified service binding",
 		Args:  cobra.RangeArgs(5, 6),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -42,7 +42,8 @@ func AddServiceBindingCmd() *cobra.Command {
 				return err
 			}
 
-			appChain, err := appchains.NewAppChainFactory(config).Make(config.GetString(cfg.ConfigKeyAppChainName))
+			appChainFactory := appchains.NewAppChainFactory(config, nil)
+			appChain, err := appChainFactory.Make(config.GetString(cfg.ConfigKeyAppChainName))
 			if err != nil {
 				return err
 			}
@@ -64,7 +65,7 @@ func AddServiceBindingCmd() *cobra.Command {
 // UpdateServiceBindingCmd implements the appchain update-svc-binding command
 func UpdateServiceBindingCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-svc-binding [svc-name] [provider] [svc-fee] [qos] [config-file-path]",
+		Use:   "update-svc-binding [svc-name] [provider] [svc-fee] [qos] [config-file]",
 		Short: "Update the specified service binding",
 		Args:  cobra.RangeArgs(4, 5),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -86,7 +87,12 @@ func UpdateServiceBindingCmd() *cobra.Command {
 				return err
 			}
 
-			appChain, err := appchains.NewAppChainFactory(config).Make(config.GetString(cfg.ConfigKeyAppChainName))
+			appChainFactory := appchains.NewAppChainFactory(config, nil)
+			appChain, err := appChainFactory.Make(config.GetString(cfg.ConfigKeyAppChainName))
+			if err != nil {
+				return err
+			}
+
 			if err != nil {
 				return err
 			}

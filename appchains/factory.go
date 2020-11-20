@@ -10,16 +10,21 @@ import (
 	"relayer/appchains/ethereum"
 	"relayer/appchains/fabric"
 	"relayer/core"
+	"relayer/store"
 )
 
 // AppChainFactory defines an application chain factory
 type AppChainFactory struct {
-	Config *viper.Viper // config context in which the application chain is built
+	Config *viper.Viper // configuration context in which the application chain is built
+	Store  *store.Store // store for the application chain
 }
 
 // NewAppChainFactory constructs a new application chain factory
-func NewAppChainFactory(config *viper.Viper) AppChainFactory {
-	return AppChainFactory{Config: config}
+func NewAppChainFactory(config *viper.Viper, store *store.Store) AppChainFactory {
+	return AppChainFactory{
+		Config: config,
+		Store:  store,
+	}
 }
 
 // Make builds an application chain according to the given chain name
@@ -32,7 +37,7 @@ func (f AppChainFactory) Make(chainName string) (core.AppChainI, error) {
 		return fabric.MakeFabricChain(fabric.NewConfig(f.Config)), nil
 
 	case "bcos":
-		return bcos.MakeBCOSChain(bcos.NewConfig(f.Config)), nil
+		return bcos.MakeBCOSChain(bcos.NewConfig(f.Config), f.Store), nil
 
 	default:
 		return nil, fmt.Errorf("application chain %s not supported", chainName)

@@ -37,7 +37,7 @@ func (r Relayer) BuildInterchainRequest(icEvent InterchainEventI) (InterchainReq
 }
 
 // HandleInterchainEvent handles the interchain event
-func (r Relayer) HandleInterchainEvent(icEvent InterchainEventI) {
+func (r Relayer) HandleInterchainEvent(icEvent InterchainEventI) error {
 	r.Logger.Infof("got the interchain event on %s: %+v", r.AppChain.GetChainID(), icEvent)
 
 	icRequest, err := r.BuildInterchainRequest(icEvent)
@@ -47,7 +47,7 @@ func (r Relayer) HandleInterchainEvent(icEvent InterchainEventI) {
 			err,
 		)
 
-		return
+		return err
 	}
 
 	callback := func(icRequestID string, response ResponseI) {
@@ -82,7 +82,11 @@ func (r Relayer) HandleInterchainEvent(icEvent InterchainEventI) {
 			r.IritaHubChain.GetChainID(),
 			err,
 		)
+
+		return err
 	}
+
+	return nil
 }
 
 // Start starts the relayer process

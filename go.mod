@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/FISCO-BCOS/go-sdk v0.10.0
+	github.com/cockroachdb/pebble v0.0.0-20201118202804-75ede898b66c
 	github.com/ethereum/go-ethereum v1.9.18
 	github.com/irisnet/service-sdk-go v0.0.0-00010101000000-000000000000
 	github.com/pelletier/go-toml v1.6.0 // indirect
