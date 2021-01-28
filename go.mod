@@ -6,6 +6,7 @@ require (
 	github.com/FISCO-BCOS/go-sdk v0.10.0
 	github.com/cockroachdb/pebble v0.0.0-20201118202804-75ede898b66c
 	github.com/ethereum/go-ethereum v1.9.18
+	github.com/gin-gonic/gin v1.4.0
 	github.com/irisnet/service-sdk-go v0.0.0-00010101000000-000000000000
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
@@ -23,4 +24,5 @@ replace (
 	github.com/irisnet/service-sdk-go => github.com/secret2830/service-sdk-go v0.0.0-20200930025908-91ed6ca17b1b
 	github.com/keybase/go-keychain => github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4
 	github.com/tendermint/tendermint => github.com/bianjieai/tendermint v0.33.4-irita-200703.0.20200925112439-d4196a88a285
+	github.com/ugorji/go => github.com/ugorji/go v1.1.2
 )
