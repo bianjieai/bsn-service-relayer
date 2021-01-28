@@ -42,8 +42,8 @@ func AddServiceBindingCmd() *cobra.Command {
 				return err
 			}
 
-			appChainFactory := appchains.NewAppChainFactory(config, nil)
-			appChain, err := appChainFactory.Make(config.GetString(cfg.ConfigKeyAppChainName))
+			appChainFactory := appchains.NewAppChainFactory(nil)
+			appChain, err := appChainFactory.BuildAppChain(config.GetString(cfg.ConfigKeyAppChainType), nil)
 			if err != nil {
 				return err
 			}
@@ -87,8 +87,8 @@ func UpdateServiceBindingCmd() *cobra.Command {
 				return err
 			}
 
-			appChainFactory := appchains.NewAppChainFactory(config, nil)
-			appChain, err := appChainFactory.Make(config.GetString(cfg.ConfigKeyAppChainName))
+			appChainFactory := appchains.NewAppChainFactory(nil)
+			appChain, err := appChainFactory.BuildAppChain(config.GetString(cfg.ConfigKeyAppChainType), nil)
 			if err != nil {
 				return err
 			}

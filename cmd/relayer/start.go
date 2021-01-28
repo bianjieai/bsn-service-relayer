@@ -8,6 +8,7 @@ import (
 	"relayer/core"
 	"relayer/hub"
 	"relayer/logging"
+	"relayer/server"
 	"relayer/store"
 )
 
@@ -31,21 +32,19 @@ func StartCmd() *cobra.Command {
 				return err
 			}
 
+			appChainType := config.GetString(cfg.ConfigKeyAppChainType)
+
 			store, err := store.NewStore(config.GetString(cfg.ConfigKeyStorePath))
 			if err != nil {
 				return err
 			}
 
-			appChainFactory := appchains.NewAppChainFactory(config, store)
-			appChain, err := appChainFactory.Make(config.GetString(cfg.ConfigKeyAppChainName))
-			if err != nil {
-				return err
-			}
+			appChainFactory := appchains.NewAppChainFactory(store)
+			hubChain := hub.BuildIritaHubChain(hub.NewConfig(config))
+			relayerInstance := core.NewRelayer(appChainType, hubChain, appChainFactory, logging.Logger)
 
-			hubChain := hub.MakeIritaHubChain(hub.NewConfig(config))
-
-			relayerInstance := core.NewRelayer(hubChain, appChain, logging.Logger)
-			relayerInstance.Start()
+			chainManager := server.NewChainManager(relayerInstance)
+			server.StartWebServer(chainManager)
 
 			return nil
 		},

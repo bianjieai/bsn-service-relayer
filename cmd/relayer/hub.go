@@ -42,7 +42,7 @@ func KeysAddCmd() *cobra.Command {
 				return err
 			}
 
-			hubChain := hub.MakeIritaHubChain(hub.NewConfig(config))
+			hubChain := hub.BuildIritaHubChain(hub.NewConfig(config))
 
 			addr, mnemonic, err := hubChain.AddKey(args[0], args[1])
 			if err != nil {
@@ -78,7 +78,7 @@ func KeysShowCmd() *cobra.Command {
 				return err
 			}
 
-			hubChain := hub.MakeIritaHubChain(hub.NewConfig(config))
+			hubChain := hub.BuildIritaHubChain(hub.NewConfig(config))
 
 			addr, err := hubChain.ShowKey(args[0], args[1])
 			if err != nil {
@@ -119,7 +119,7 @@ func KeysImportCmd() *cobra.Command {
 				return err
 			}
 
-			hubChain := hub.MakeIritaHubChain(hub.NewConfig(config))
+			hubChain := hub.BuildIritaHubChain(hub.NewConfig(config))
 
 			addr, err := hubChain.ImportKey(args[0], args[1], string(keyArmor))
 			if err != nil {
