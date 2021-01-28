@@ -9,7 +9,7 @@ import (
 const (
 	DefaultConfigFileName = "./config/config.yaml"
 
-	ConfigKeyAppChainName = "base.app_chain_name"
+	ConfigKeyAppChainType = "base.app_chain_type"
 	ConfigKeyStorePath    = "base.store_path"
 
 	DefaultStorePath = ".db"

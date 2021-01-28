@@ -1,5 +1,5 @@
 base:
-    app_chain_name: bcos # application chain name
+    app_chain_name: fisco # application chain name
     store_path: .db # store path
 
 # irita-hub config
@@ -18,7 +18,6 @@ eth:
     gas_limit: 2000000
     gas_price: 5000000000
     key: 5dee232c8be5cb81f0ae6fddb45243fc6208192c16aef275ef41b019df765d1f
-    passphrase: 123456789
     iservice_core_addr: 0x79b6c1ab5dbeba4879bfbea35a78fac8e6c73c92
     iservice_market_addr: 0x87e71e95fbd95d66e307edaeb7974c1f17f87a82
     iservice_event_name: ServiceInvoked
@@ -34,9 +33,9 @@ fabric:
     key: test
     passphrase: 123456789
 
-# bcos config
-bcos:
-    config_file: ./appchains/bcos/config.toml
+# fisco config
+fisco:
+    config_file: ./appchains/fisco/config.toml
     iservice_core_addr: 0xe9708c47b560ac923e5a9096669fc71e8bd771cb
     iservice_market_addr: 0x55edef761e7d489b39db2d38250b2496725cd722
     monitor_interval: 1 # chain monitoring interval in seconds
