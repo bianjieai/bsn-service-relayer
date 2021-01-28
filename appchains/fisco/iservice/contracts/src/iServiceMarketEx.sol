@@ -202,6 +202,21 @@ contract iServiceMarketEx is Ownable {
     }
 
     /**
+     * @notice Check if the given service binding exists
+     * @param _serviceName Service name
+     * @return exist Indicates if the service binding exists
+     */
+    function serviceBindingExists(
+        string memory _serviceName
+    ) 
+        public
+        view
+        returns (bool exist)
+    {
+        return bindingIndices[_serviceName].exist;
+    }
+
+    /**
      * @notice Retrieve the specified service binding
      * @param _serviceName Service name
      * @return binding Service binding
@@ -251,6 +266,69 @@ contract iServiceMarketEx is Ownable {
         }
 
         return binding;
+    }
+
+    /**
+     * @notice Query the service provider of the specified service binding
+     * @param _serviceName Service name
+     * @return provider Service provider
+     */
+    function GetServiceProvider(
+        string memory _serviceName
+    )
+        public
+        view
+        returns (string memory provider)
+    {
+        ServiceBindingIndex memory sbi = bindingIndices[_serviceName];
+
+        if (sbi.exist) {
+            return bindings[sbi.index].provider;
+        }
+
+        return provider;
+    }
+
+    /**
+     * @notice Query the service fee of the specified service binding
+     * @param _serviceName Service name
+     * @return fee Service fee
+     */
+    function GetServiceFee(
+        string memory _serviceName
+    )
+        public
+        view
+        returns (string memory fee)
+    {
+        ServiceBindingIndex memory sbi = bindingIndices[_serviceName];
+
+        if (sbi.exist) {
+            return bindings[sbi.index].serviceFee;
+        }
+
+        return fee;
+    }
+
+    /**
+     * @notice Query the service quality of the specified service binding
+     * @param _serviceName Service name
+     * @return qos Service quality
+     */
+    function GetQoS(
+        string memory _serviceName
+    )
+        public
+        view
+        returns (uint256 qos)
+    {
+        ServiceBindingIndex memory sbi = bindingIndices[_serviceName];
+
+        if (sbi.exist) {
+            return bindings[sbi.index].qos;
+        }
+
+        return qos;
     }
     
     /**

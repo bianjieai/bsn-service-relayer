@@ -13,9 +13,9 @@
         }
     ],
     "authentication": {
-        "key": "../../../appchains/bcos/.keys/sdk.key",
-        "cert": "../../../appchains/bcos/.keys/sdk.crt",
-        "ca": "../../../appchains/bcos/.keys/ca.crt"
+        "key": "../../../appchains/fisco/.keys/sdk.key",
+        "cert": "../../../appchains/fisco/.keys/sdk.crt",
+        "ca": "../../../appchains/fisco/.keys/ca.crt"
     },
     "groupID": 1,
     "chainID": 1,

@@ -11,7 +11,7 @@ contract PriceOracle {
     iServiceInterface iServiceContract; // iService contract address 
     
     // oracle request variables
-    string serviceName = "oracle"; // oracle-specific service name
+    string serviceName = "oracle-price"; // oracle-specific service name
     string input = "btc-usdt"; // feed name
     
     // mapping the request id to RequestStatus
