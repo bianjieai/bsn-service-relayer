@@ -78,8 +78,8 @@ func NewIritaHubChain(
 	return hub
 }
 
-// MakeIritaHubChain builds an Irita-Hub from the given config
-func MakeIritaHubChain(config Config) IritaHubChain {
+// BuildIritaHubChain builds an Irita-Hub instance from the given config
+func BuildIritaHubChain(config Config) IritaHubChain {
 	return NewIritaHubChain(
 		config.ChainID,
 		config.NodeRPCAddr,
@@ -97,7 +97,7 @@ func (ic IritaHubChain) GetChainID() string {
 
 // SendInterchainRequest implements IritaHubChainI
 func (ic IritaHubChain) SendInterchainRequest(
-	request core.InterchainRequestI,
+	request core.InterchainRequest,
 	cb core.ResponseCallback,
 ) error {
 	invokeServiceReq, err := ic.BuildServiceInvocationRequest(request)
@@ -128,18 +128,18 @@ func (ic IritaHubChain) SendInterchainRequest(
 
 // BuildServiceInvocationRequest builds the service invocation request from the given interchain request
 func (ic IritaHubChain) BuildServiceInvocationRequest(
-	request core.InterchainRequestI,
+	request core.InterchainRequest,
 ) (service.InvokeServiceRequest, error) {
-	serviceFeeCap, err := types.ParseDecCoins(request.GetServiceFeeCap())
+	serviceFeeCap, err := types.ParseDecCoins(request.ServiceFeeCap)
 	if err != nil {
 		return service.InvokeServiceRequest{}, err
 	}
 
 	return service.InvokeServiceRequest{
-		ServiceName:   request.GetServiceName(),
-		Providers:     []string{request.GetProvider()},
-		Input:         request.GetInput(),
-		Timeout:       int64(request.GetTimeout()),
+		ServiceName:   request.ServiceName,
+		Providers:     []string{request.Provider},
+		Input:         request.Input,
+		Timeout:       int64(request.Timeout),
 		ServiceFeeCap: serviceFeeCap,
 	}, nil
 }
