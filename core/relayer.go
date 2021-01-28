@@ -1,105 +1,137 @@
 package core
 
 import (
+	"fmt"
+	"sync"
+
 	log "github.com/sirupsen/logrus"
 )
 
-// Relayer is a relayer implementing the interchain service invocation between the application chain and Irita-Hub
+// Relayer represents a relayer transmitting msgs
+// from app chains with the same architecture
+// to the Hub chain
 type Relayer struct {
-	IritaHubChain IritaHubChainI
-	AppChain      AppChainI
-	Logger        *log.Logger
+	AppChainType    string
+	HubChain        HubChainI
+	AppChains       map[string]AppChainI
+	AppChainStates  map[string]bool
+	AppChainFactory AppChainFactoryI
+	Logger          *log.Logger
+	mtx             sync.Mutex
 }
 
 // NewRelayer constructs a new Relayer instance
-func NewRelayer(iritaHubChain IritaHubChainI, appChain AppChainI, logger *log.Logger) Relayer {
-	return Relayer{
-		IritaHubChain: iritaHubChain,
-		AppChain:      appChain,
-		Logger:        logger,
+func NewRelayer(appChainType string, hub HubChainI, appChainFactory AppChainFactoryI, logger *log.Logger) *Relayer {
+	return &Relayer{
+		AppChainType:    appChainType,
+		HubChain:        hub,
+		AppChainFactory: appChainFactory,
+		Logger:          logger,
 	}
 }
 
-// BuildInterchainRequest builds an interchain request from an interchain event
-func (r Relayer) BuildInterchainRequest(icEvent InterchainEventI) (InterchainRequestI, error) {
-	serviceBinding, err := r.AppChain.GetServiceBinding(icEvent.GetServiceName())
+// AddChain adds an app chain with the specified app chain params
+func (r *Relayer) AddChain(appChainParams []byte) (chainID string, err error) {
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+
+	chainID, err = r.AppChainFactory.GetChainID(r.AppChainType, appChainParams)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return InterchainRequestAdaptor{
-		ServiceName:   icEvent.GetServiceName(),
-		Provider:      serviceBinding.GetProvider(),
-		Input:         icEvent.GetInput(),
-		Timeout:       icEvent.GetTimeout(),
-		ServiceFeeCap: serviceBinding.GetServiceFee(),
-	}, nil
+	_, ok := r.AppChains[chainID]
+	if ok {
+		return "", fmt.Errorf("chain ID %s already exists", chainID)
+	}
+
+	chain, err := r.AppChainFactory.BuildAppChain(r.AppChainType, appChainParams)
+	if err != nil {
+		return "", err
+	}
+
+	if err := chain.Start(r.HandleInterchainRequest); err != nil {
+		return "", err
+	}
+
+	r.AppChains[chainID] = chain
+	r.AppChainStates[chainID] = true
+
+	return chainID, nil
 }
 
-// HandleInterchainEvent handles the interchain event
-func (r Relayer) HandleInterchainEvent(icEvent InterchainEventI) error {
-	r.Logger.Infof("got the interchain event on %s: %+v", r.AppChain.GetChainID(), icEvent)
+// StartChain starts the specified app chain
+func (r *Relayer) StartChain(chainID string) error {
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
 
-	icRequest, err := r.BuildInterchainRequest(icEvent)
-	if err != nil {
-		r.Logger.Errorf(
-			"failed to build the interchain request: %s",
-			err,
-		)
+	state, ok := r.AppChainStates[chainID]
+	if !ok {
+		return fmt.Errorf("chain ID %s does not exist", chainID)
+	}
 
+	if state {
+		return fmt.Errorf("chain ID %s is running", chainID)
+	}
+
+	chain := r.AppChains[chainID]
+	if err := chain.Start(r.HandleInterchainRequest); err != nil {
 		return err
 	}
 
-	callback := func(icRequestID string, response ResponseI) {
-		r.Logger.Infof(
-			"got the response of the interchain request on %s: %+v",
-			r.IritaHubChain.GetChainID(),
-			response,
-		)
-
-		err := r.AppChain.SendResponse(icEvent.GetRequestID(), response)
-		if err != nil {
-			r.Logger.Errorf(
-				"failed to send the response to %s: %s",
-				r.AppChain.GetChainID(),
-				err,
-			)
-
-			return
-		}
-
-		r.Logger.Infof(
-			"response sent to %s successfully",
-			r.AppChain.GetChainID(),
-		)
-	}
-
-	err = r.IritaHubChain.SendInterchainRequest(icRequest, callback)
-	if err != nil {
-		r.Logger.Errorf(
-			"failed to handle the interchain request %+v on %s: %s",
-			icRequest,
-			r.IritaHubChain.GetChainID(),
-			err,
-		)
-
-		return err
-	}
+	r.AppChainStates[chainID] = true
 
 	return nil
 }
 
-// Start starts the relayer process
-func (r Relayer) Start() {
-	r.Logger.Infof("relayer started")
-	r.Logger.Infof("watching the interchain events on %s", r.AppChain.GetChainID())
+// StopChain stops the specified app chain
+func (r *Relayer) StopChain(chainID string) error {
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
 
-	err := r.AppChain.InterchainEventListener(r.HandleInterchainEvent)
-	if err != nil {
-		r.Logger.Errorf(
-			"failed to listen to the interchain events on %s: %s",
-			r.AppChain.GetChainID(),
-			err,
-		)
+	state, ok := r.AppChainStates[chainID]
+	if !ok {
+		return fmt.Errorf("chain ID %s does not exist", chainID)
 	}
+
+	if !state {
+		return fmt.Errorf("chain ID %s is not running", chainID)
+	}
+
+	chain := r.AppChains[chainID]
+	if err := chain.Stop(); err != nil {
+		return err
+	}
+
+	r.AppChainStates[chainID] = false
+
+	return nil
+}
+
+// GetChains retrieves the current active app chains
+func (r *Relayer) GetChains() []string {
+	chains := make([]string, 0)
+
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+
+	for c, s := range r.AppChainStates {
+		if s {
+			chains = append(chains, c)
+		}
+	}
+
+	return chains
+}
+
+// GetChainStatus gets the status of the specified app chain
+func (r *Relayer) GetChainStatus(chainID string) (state bool, height int64, err error) {
+	state, ok := r.AppChainStates[chainID]
+	if !ok {
+		return state, height, fmt.Errorf("chain ID %s does not exist", chainID)
+	}
+
+	height = r.AppChains[chainID].GetHeight()
+
+	return state, height, nil
 }

@@ -5,20 +5,26 @@ type ChainI interface {
 	GetChainID() string // chain ID getter
 }
 
-// IritaHubChainI defines the interface to interact with Irita-Hub
-type IritaHubChainI interface {
+// HubChainI defines the interface to interact with the Hub chain
+type HubChainI interface {
 	ChainI
 
 	// send the interchain request and handle the response with the given callback
-	SendInterchainRequest(request InterchainRequestI, cb ResponseCallback) error
+	SendInterchainRequest(request InterchainRequest, cb ResponseCallback) error
 }
 
 // AppChainI defines the interface to interact with the application chain
 type AppChainI interface {
 	ChainI
 
-	// listen to the interchain events with an event handler
-	InterchainEventListener(cb InterchainEventHandler) error
+	// start the application chain monitor
+	Start(handler InterchainRequestHandler) error
+
+	// stop the application chain monitor
+	Stop() error
+
+	// get the current height
+	GetHeight() int64
 
 	// send the response to the application chain
 	SendResponse(requestID string, response ResponseI) error
@@ -27,21 +33,28 @@ type AppChainI interface {
 	IServiceMarketI
 }
 
-// InterchainEventI abstracts the event which is triggered for an interchain service invocation
-type InterchainEventI interface {
-	GetRequestID() string   // request ID getter
-	GetServiceName() string // service name getter
-	GetInput() string       // request input getter
-	GetTimeout() uint64     // request timeout getter
+// AppChainFactoryI abstracts the application chain operation interface
+type AppChainFactoryI interface {
+	// build an application chain according to the given app chain type and params
+	BuildAppChain(chainType string, chainParams []byte) (AppChainI, error)
+
+	// get the unique chain ID according to the given app chain type and params
+	GetChainID(chainType string, chainParams []byte) (string, error)
+
+	// store the base config by the given app chain type
+	StoreBaseConfig(chainType string, baseConfig []byte) error
 }
 
-// InterchainRequestI is an interface for the interchain request
-type InterchainRequestI interface {
-	GetServiceName() string   // service name getter
-	GetProvider() string      // provider getter
-	GetInput() string         // request input getter
-	GetTimeout() uint64       // request timeout getter
-	GetServiceFeeCap() string // service fee cap getter
+// InterchainRequest defines the interchain service request
+type InterchainRequest struct {
+	ID              string // request ID
+	ChainID         string // chain ID
+	ContractAddress string // contract address
+	ServiceName     string // service name
+	Provider        string // provider address
+	Input           string // request input
+	Timeout         uint64 // request timeout
+	ServiceFeeCap   string // service fee cap
 }
 
 // ResponseI defines the response related interfaces
@@ -63,18 +76,18 @@ type KeyManager interface {
 
 // IServiceMarketI defines the interface for the iService market on the application chain
 type IServiceMarketI interface {
-	// add a service binding to the iService market
+	// AddServiceBinding add a service binding to the iService market
 	AddServiceBinding(serviceName, schemas, provider, serviceFee string, qos uint64) error
 
 	// update the specified service binding
 	UpdateServiceBinding(serviceName, provider, serviceFee string, qos uint64) error
 
 	// get the service binding by the given service name from the iService market
-	GetServiceBinding(serviceName string) (IServiceBinding, error)
+	GetServiceBinding(serviceName string) (ServiceBindingI, error)
 }
 
-// IServiceBinding defines an iService binding interface
-type IServiceBinding interface {
+// ServiceBindingI defines the iService binding interface
+type ServiceBindingI interface {
 	GetServiceName() string // service name getter
 	GetSchemas() string     // service schemas
 	GetProvider() string    // service provider
@@ -82,8 +95,8 @@ type IServiceBinding interface {
 	GetQoS() uint64         // quality of service
 }
 
-// InterchainEventHandler defines the interchain event callback interface
-type InterchainEventHandler func(icEvent InterchainEventI) error
+// InterchainRequestHandler defines the interchain request handler interface
+type InterchainRequestHandler func(chainID string, request InterchainRequest) error
 
 // ResponseCallback defines the response callback interface
 type ResponseCallback func(icRequestID string, response ResponseI)
