@@ -12,7 +12,7 @@ var nodeRPCAddr = 'wss://ropsten.infura.io/ws/v3/56e89587eacb4fbe8655e4c44b14623
 var fromAddress = '0xaa27bb5ef6e54a9019be7ade0d0fc514abb4d03b';
 var privateKey = '5dee232c8be5cb81f0ae6fddb45243fc6208192c16aef275ef41b019df765d1f';
 var gasPrice = 20000000000;
-var gasLimit = 200000;
+var gasLimit = 500000;
 
 // contract config
 var consumerContractAddr = '0x87eFCd928Fa49B50177FFd7db144f6cEc051cB55';

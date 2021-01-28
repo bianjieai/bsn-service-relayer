@@ -60,18 +60,18 @@ func (fc FabricChain) GetChainID() string {
 }
 
 // InterchainEventListener implements AppChainI
-func (fc FabricChain) InterchainEventListener(cb core.InterchainEventHandler) error {
+func (fc FabricChain) InterchainEventListener(cb core.InterchainRequestHandler) error {
 	i := 0
 
 	for {
-		event := iservice.IServiceRequestEvent{
-			RequestID:   fmt.Sprintf("request%d", i+1),
+		request := core.InterchainRequest{
+			ID:          fmt.Sprintf("request%d", i+1),
 			ServiceName: "exchange_rate",
 			Input:       fmt.Sprintf(`{"name":"CNY-USD"}`),
 			Timeout:     uint64(50),
 		}
 
-		cb(event)
+		cb(fc.GetChainID(), request)
 
 		time.Sleep(10 * time.Second)
 		i++
@@ -94,7 +94,7 @@ func (fc FabricChain) UpdateServiceBinding(serviceName, provider, serviceFee str
 }
 
 // GetServiceBinding implements AppChainI
-func (fc FabricChain) GetServiceBinding(serviceName string) (core.IServiceBinding, error) {
+func (fc FabricChain) GetServiceBinding(serviceName string) (core.ServiceBindingI, error) {
 	return iservice.ServiceBinding{
 		Provider:   "test-provider",
 		ServiceFee: "100point",

@@ -123,7 +123,7 @@ func (ec EthChain) GetChainID() string {
 }
 
 // InterchainEventListener implements AppChainI
-func (ec EthChain) InterchainEventListener(cb core.InterchainEventHandler) error {
+func (ec EthChain) InterchainEventListener(cb core.InterchainRequestHandler) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -140,12 +140,12 @@ func (ec EthChain) InterchainEventListener(cb core.InterchainEventHandler) error
 	}
 
 	logHandler := func(log ethtypes.Log) {
-		iServiceRequestEvent, err := ec.parseLog(log)
+		interchainRequest, err := ec.parseLog(log)
 
 		if err != nil {
 			logging.Logger.Errorf("failed to parse log %+v: %s", log, err)
 		} else {
-			cb(iServiceRequestEvent)
+			cb(ec.ChainID, interchainRequest)
 		}
 	}
 
@@ -223,7 +223,7 @@ func (ec EthChain) UpdateServiceBinding(serviceName, provider, serviceFee string
 }
 
 // GetServiceBinding implements AppChainI
-func (ec EthChain) GetServiceBinding(serviceName string) (core.IServiceBinding, error) {
+func (ec EthChain) GetServiceBinding(serviceName string) (core.ServiceBindingI, error) {
 	serviceBinding, err := ec.IServiceMarketContract.GetServiceBinding(nil, serviceName)
 	if err != nil {
 		return nil, err
@@ -271,16 +271,16 @@ func (ec EthChain) logListener(sub ethereum.Subscription, logChan chan ethtypes.
 	}
 }
 
-// parseLog parses the given log to IServiceRequestEvent
-func (ec EthChain) parseLog(log ethtypes.Log) (iservice.IServiceRequestEvent, error) {
-	var iServiceRequestEvent iservice.IServiceRequestEvent
+// parseLog parses the given log to InterchainRequest
+func (ec EthChain) parseLog(log ethtypes.Log) (core.InterchainRequest, error) {
+	var interchainRequest core.InterchainRequest
 
-	err := ec.IServiceCoreABI.Unpack(&iServiceRequestEvent, ec.IServiceEventName, log.Data)
+	err := ec.IServiceCoreABI.Unpack(&interchainRequest, ec.IServiceEventName, log.Data)
 	if err != nil {
-		return iServiceRequestEvent, err
+		return interchainRequest, err
 	}
 
-	return iServiceRequestEvent, nil
+	return interchainRequest, nil
 }
 
 // waitForReceipt waits for the receipt of the given tx
