@@ -1,4 +1,4 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.10;
 pragma experimental "ABIEncoderV2";
 
 import "./vendor/Ownable.sol";
@@ -29,7 +29,7 @@ contract iServiceMarketEx is Ownable {
     }
 
     /**
-     * @title Event triggered when a service binding is added
+     * @dev Event triggered when a service binding is added
      * @param _serviceName Service name
      * @param _schemas Input and output schemas of the service definition to which the binding is attached
      * @param _provider Provider address of the binding
@@ -45,7 +45,7 @@ contract iServiceMarketEx is Ownable {
     );
 
     /**
-     * @title Event triggered when the service binding is updated
+     * @dev Event triggered when the service binding is updated
      * @param _serviceName Service name
      * @param _provider Provider address of the binding
      * @param _serviceFee Service fee
@@ -59,7 +59,7 @@ contract iServiceMarketEx is Ownable {
     );
 
     /**
-     * @title Event triggered when the service binding is removed
+     * @dev Event triggered when the service binding is removed
      * @param _serviceName Service name
      */
     event ServiceBindingRemoved(
@@ -67,7 +67,7 @@ contract iServiceMarketEx is Ownable {
     );
 
     /**
-     * @title Constructor
+     * @dev Constructor
      */
     constructor()
         public
@@ -77,7 +77,7 @@ contract iServiceMarketEx is Ownable {
     }
 
     /**
-     * @title Make sure that the service binding is valid
+     * @dev Make sure that the service binding is valid
      * @param _serviceName Service name
      * @param _schemas Input and output schemas of the service definition to which the binding is attached
      * @param _provider Provider address of the binding
@@ -102,7 +102,7 @@ contract iServiceMarketEx is Ownable {
     }
 
     /**
-     * @title Make sure that the specified binding does not exist
+     * @dev Make sure that the specified binding does not exist
      * @param _serviceName Service name
      */
     modifier bindingDoesNotExist(string memory _serviceName) {
@@ -111,7 +111,7 @@ contract iServiceMarketEx is Ownable {
     }
 
     /**
-     * @title Make sure that the specified binding already exists
+     * @dev Make sure that the specified binding already exists
      * @param _serviceName Service name
      */
     modifier bindingExists(string memory _serviceName) {
@@ -120,7 +120,7 @@ contract iServiceMarketEx is Ownable {
     }
 
     /**
-     * @title Add a service binding to the iService market
+     * @dev Add a service binding to the iService market
      * @param _serviceName Service name
      * @param _schemas Input and output schemas of the service definition to which the binding is attached
      * @param _provider Provider address of the binding
@@ -151,7 +151,7 @@ contract iServiceMarketEx is Ownable {
     }
 
     /**
-     * @title Update the specified service binding
+     * @dev Update the specified service binding
      * @param _serviceName Service name
      * @param _provider Provider address of the binding, not updated if empty
      * @param _serviceFee Service fee, not updated if empty
@@ -185,7 +185,7 @@ contract iServiceMarketEx is Ownable {
     }
 
     /**
-     * @title Remove the specified service binding
+     * @dev Remove the specified service binding
      * @param _serviceName Service name
      */
     function removeServiceBinding(
@@ -202,11 +202,26 @@ contract iServiceMarketEx is Ownable {
     }
 
     /**
-     * @title Retrieve the specified service binding
+     * @dev Check if the given service binding exists
      * @param _serviceName Service name
-     * @return Service binding
+     * @return exist Indicates if the service binding exists
      */
-    function GetServiceBinding(
+    function serviceBindingExists(
+        string memory _serviceName
+    ) 
+        public
+        view
+        returns (bool exist)
+    {
+        return bindingIndices[_serviceName].exist;
+    }
+
+    /**
+     * @dev Retrieve the specified service binding
+     * @param _serviceName Service name
+     * @return binding Service binding
+     */
+    function getServiceBinding(
         string memory _serviceName
     )
         public
@@ -223,23 +238,23 @@ contract iServiceMarketEx is Ownable {
     }
 
     /**
-     * @title Query the total number of the service bindings
-     * @return Total number of the service bindings
+     * @dev Query the total number of the service bindings
+     * @return count Total number of the service bindings
      */
-    function GetServiceBindingCount()
+    function getServiceBindingCount()
         public
         view
-        returns (uint256)
+        returns (uint256 count)
     {
         return bindings.length;
     }
 
     /**
-     * @title Retrieve the specified service binding by index
+     * @dev Retrieve the specified service binding by index
      * @param _index Index of the service binding
-     * @return Service binding
+     * @return binding Service binding
      */
-    function GetServiceBindingByIndex(
+    function getServiceBindingByIndex(
         uint256 _index
     )
         public
@@ -252,9 +267,72 @@ contract iServiceMarketEx is Ownable {
 
         return binding;
     }
+
+    /**
+     * @dev Query the service provider of the specified service binding
+     * @param _serviceName Service name
+     * @return provider Service provider
+     */
+    function getServiceProvider(
+        string memory _serviceName
+    )
+        public
+        view
+        returns (string memory provider)
+    {
+        ServiceBindingIndex memory sbi = bindingIndices[_serviceName];
+
+        if (sbi.exist) {
+            return bindings[sbi.index].provider;
+        }
+
+        return provider;
+    }
+
+    /**
+     * @dev Query the service fee of the specified service binding
+     * @param _serviceName Service name
+     * @return fee Service fee
+     */
+    function getServiceFee(
+        string memory _serviceName
+    )
+        public
+        view
+        returns (string memory fee)
+    {
+        ServiceBindingIndex memory sbi = bindingIndices[_serviceName];
+
+        if (sbi.exist) {
+            return bindings[sbi.index].serviceFee;
+        }
+
+        return fee;
+    }
+
+    /**
+     * @dev Query the service quality of the specified service binding
+     * @param _serviceName Service name
+     * @return qos Service quality
+     */
+    function getQoS(
+        string memory _serviceName
+    )
+        public
+        view
+        returns (uint256 qos)
+    {
+        ServiceBindingIndex memory sbi = bindingIndices[_serviceName];
+
+        if (sbi.exist) {
+            return bindings[sbi.index].qos;
+        }
+
+        return qos;
+    }
     
     /**
-     * @title Add the service binding internally
+     * @notice Add the service binding internally
      * @param _binding Service binding to be added
      */
     function _addServiceBinding(

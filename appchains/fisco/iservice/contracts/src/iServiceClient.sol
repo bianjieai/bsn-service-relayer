@@ -1,4 +1,4 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.10;
 
 import "../interfaces/iServiceInterface.sol";
 
@@ -7,24 +7,36 @@ import "../interfaces/iServiceInterface.sol";
  */
 contract iServiceClient {
     iServiceInterface iServiceCore; // iService Core contract address
+
+    // mapping the request id to Request
+    mapping(bytes32 => Request) requests;
     
-    // mapping the request id to RequestStatus
-    mapping(bytes32 => RequestStatus) requests;
-    
-    // request status
-    struct RequestStatus {
+    // request
+    struct Request {
+        address callbackAddress; // callback contract address
+        bytes4 callbackFunction; // callback function selector
         bool sent; // request sent
         bool responded; // request responded
     }
-    
+
     /*
-     * @title Event triggered when the iService request is sent
+     * @dev Event triggered when the iService request is sent
      * @param _requestID Request id
      */
-    event IServiceRequestSent(bytes32 _requestID);
+    event RequestSent(bytes32 _requestID);
     
     /*
-     * @title Make sure that the given request is valid
+     * @dev Make sure that the sender is the contract itself
+     * @param _requestID Request id
+     */
+    modifier onlySelf() {
+        require(msg.sender == address(this), "iServiceClient: sender must be the contract itself");
+        
+        _;
+    }
+
+    /*
+     * @dev Make sure that the given request is valid
      * @param _requestID Request id
      */
     modifier validRequest(bytes32 _requestID) {
@@ -35,7 +47,7 @@ contract iServiceClient {
     }
     
     /*
-     * @title Send iService request
+     * @dev Send the iService request
      * @param _serviceName Service name
      * @param _input Service request input
      * @param _timeout Service request timeout
@@ -44,8 +56,8 @@ contract iServiceClient {
      * @return requestID Request id
      */
     function sendIServiceRequest(
-        string calldata _serviceName,
-        string calldata _input,
+        string memory _serviceName,
+        string memory _input,
         uint256 _timeout,
         address _callbackAddress,
         bytes4 _callbackFunction
@@ -53,20 +65,48 @@ contract iServiceClient {
         internal
         returns (bytes32 requestID)
     {
-        requestID = iServiceCore.callService(serviceName, input, timeout, _callbackAddress, _callbackFunction);
+        requestID = iServiceCore.callService(_serviceName, _input, _timeout, address(this), this.onResponse.selector);
         
-        emit IServiceRequestSent(requestID);
+        Request memory request = Request(
+            _callbackAddress,
+            _callbackFunction,
+            true,
+            false
+        );
+
+        requests[requestID] = request;
+
+        emit RequestSent(requestID);
         
-        requests[requestID].sent = true;
+        return requestID;
+    }
+
+    /* 
+     * @dev Callback function
+     * @param _requestID Request id
+     * @param _output Response output
+     */
+    function onResponse(
+        bytes32 _requestID,
+        string calldata _output
+    )
+        external
+        validRequest(_requestID)
+    {
+        requests[_requestID].responded = true;
         
-        return requestID
+        address cbAddr = requests[_requestID].callbackAddress;
+        bytes4 cbFunc = requests[_requestID].callbackFunction;
+        
+        cbAddr.call(abi.encodeWithSelector(cbFunc, _requestID, _output));
     }
 
     /**
-     * @title Set the iService core contract address
-     * @param _iServiceCore The address of the iService core contract
+     * @dev Set the iService core contract address
+     * @param _iServiceCore Address of the iService core contract
      */
     function setIServiceCore(address _iServiceCore) internal {
-        iServiceCore = _iServiceCore;
+        require(_iServiceCore != address(0), "iServiceClient: iService core address can not be zero");
+        iServiceCore = iServiceInterface(_iServiceCore);
     }
 }

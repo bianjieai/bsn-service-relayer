@@ -1,8 +1,9 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.10;
 pragma experimental "ABIEncoderV2";
 
 import "./vendor/Ownable.sol";
 import "./interfaces/iServiceInterface.sol";
+import "./interfaces/iServiceMarketInterface.sol";
 
 /**
  * @title iService Core Extension contract
@@ -10,23 +11,41 @@ import "./interfaces/iServiceInterface.sol";
 contract iServiceCoreEx is iServiceInterface, Ownable {
     // mapping the request id to Request
     mapping(bytes32 => Request) requests;
+    
+    // mapping the request id to Callback
+    mapping(bytes32 => Callback) callbacks;
 
     // mapping the request id to Response
     mapping(bytes32 => Response) responses;
+
+    // chain id
+    string chainID;
 
     // global request count
     uint256 public requestCount;
 
     // address allowed to relay the interchain requests
     address relayer;
+
+    // iService market used to query the service binding
+    iServiceMarketInterface public iServiceMarket;
     
     // service request
     struct Request {
+        bytes32 id; // request id
+        string chainID; // chain id
+        address contractAddress; // address of the contract initiating the request 
         string serviceName; // service name
+        string provider; // service provider
         string input; // request input
+        string serviceFeeCap; // service fee cap
         uint256 timeout; // request timeout
-        address callbackAddress; // callback contract address
-        bytes4 callbackFunction; // callback function selector
+    }
+ 
+    // request callback
+    struct Callback {
+        address contractAddress; // callback contract address
+        bytes4 functionSelector; // callback function selector
     }
 
     // service response
@@ -37,29 +56,49 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @title Event triggered when the service invocation is initiated
+     * @dev Event triggered when the service invocation is initiated
      * @param _requestID Request id
+     * @param _chainID Chain id
+     * @param _contractAddress Contract address
      * @param _serviceName Service name
+     * @param _provider Provider address
      * @param _input Request input
      * @param _timeout Request timeout
+     * @return requestID Request id
      */
-    event ServiceInvoked(bytes32 indexed _requestID, string _serviceName, string _input, uint256 _timeout);
+    event ServiceInvoked(
+        bytes32 _requestID,
+        string _chainID,
+        address _contractAddress,
+        string _serviceName,
+        string _provider,
+        string _input,
+        string _serviceFeeCap,
+        uint256 _timeout
+    );
 
     /**
-     * @title Constructor
+     * @dev Constructor
+     * @param _chainID Chain ID
+     * @param _iServiceMarket iService market contract address
      * @param _relayer Relayer address
      */
-    constructor(address _relayer)
+    constructor(string memory _chainID, address _iServiceMarket, address _relayer)
         public
         Ownable()
     {
+        _setChainID(_chainID);
+        _setIServiceMarket(_iServiceMarket);
+
         if (_relayer != address(0)) {
             relayer = _relayer;
+        } else {
+            relayer = owner();
         }
     }
 
     /**
-     * @title Make sure that the request is valid
+     * @dev Make sure that the request is valid
      * @param _serviceName Service name
      * @param _input Request input
      * @param _timeout Request timeout
@@ -78,7 +117,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @title Make sure that the request exists and has not been responded
+     * @dev Make sure that the request exists and has not been responded
      * @param _requestID Request id
      */
     modifier validRequest(bytes32 _requestID) {
@@ -89,7 +128,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
     
     /** 
-     * @title Make sure that the sender is the relayer
+     * @dev Make sure that the sender is the relayer
      */
     modifier onlyRelayer() {
         require(msg.sender == relayer, "iServiceCoreEx: sender is not the relayer");
@@ -97,7 +136,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @title Initiate a service invocation
+     * @dev Initiate a service invocation
      * @param _serviceName Service name
      * @param _input Request input
      * @param _timeout Request timeout
@@ -118,18 +157,24 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
         returns (bytes32 requestID)
     {
         Request memory req;
-        
+
+        req.chainID = chainID;
+        req.contractAddress = msg.sender;
         req.serviceName = _serviceName;
         req.input = _input;
         req.timeout= _timeout;
-        req.callbackAddress = _callbackAddress;
-        req.callbackFunction = _callbackFunction;
         
-        return _sendRequest(req);
+        _populateRequest(req);
+        requestID = _sendRequest(req);
+        req.id = requestID;
+
+        _saveRequestCallback(requestID, _callbackAddress, _callbackFunction);
+
+        return requestID;
     }
 
     /**
-     * @title Set the response of the specified service request
+     * @dev Set the response of the specified service request
      * @param _requestID Request id
      * @param _errMsg Error message of the service invocation
      * @param _output Response output
@@ -159,14 +204,14 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
         
         responses[_requestID] = resp;
 
-        Request memory req = requests[_requestID];
-        (bool success, ) = req.callbackAddress.call(abi.encodeWithSelector(req.callbackFunction, _requestID, resp.output));
+        Callback memory cb = callbacks[_requestID];
+        (bool success, ) = cb.contractAddress.call(abi.encodeWithSelector(cb.functionSelector, _requestID, resp.output));
         
         return success;
     }
 
     /**
-     * @title Retrieve the response of the given service request 
+     * @dev Retrieve the response of the given service request 
      * @param _requestID Request id
      * @return Response
      */
@@ -181,7 +226,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @title Set the relayer address
+     * @notice Set the relayer address
      * @param _address Relayer address
      */
     function setRelayer(
@@ -193,9 +238,91 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
         require(_address != address(0), "iServiceCoreEx: relayer address can not be zero");
         relayer = _address;
     }
+
+    /**
+     * @notice Set the iService market
+     * @param _address iService market contract address
+     */
+    function setIServiceMarket(
+        address _address
+    )
+        external
+        onlyOwner
+    {
+        _setIServiceMarket(_address);
+    }
+
+    /**
+     * @notice Set the chain ID
+     * @param _chainID Chain ID
+     */
+    function _setChainID(
+        string memory _chainID
+    )
+        internal
+    {
+        require(bytes(_chainID).length > 0, "iServiceCoreEx: chain ID can not be empty");
+        chainID = _chainID;
+    }
+
+    /**
+     * @notice Set the iService market
+     * @param _address iService market contract address
+     */
+    function _setIServiceMarket(
+        address _address
+    )
+        internal
+    {
+        require(_address != address(0), "iServiceCoreEx: iService market address can not be zero");
+        iServiceMarket = iServiceMarketInterface(_address);
+    }
+
+    /**
+     * @notice Polulate the given request with the extra service market data 
+     * @param _req Request
+     */
+    function _populateRequest(
+        Request memory _req
+    )
+        internal
+    {
+        bool exist = iServiceMarket.serviceBindingExists(_req.serviceName);
+        require(exist, "iServiceCoreEx: service does not exist in the service market");
+        
+        uint256 qos = iServiceMarket.getQoS(_req.serviceName);
+        require(_req.timeout >= qos, "iServiceCoreEx: request timeout must be greater than or equal to the service QoS");
+        
+        string memory provider = iServiceMarket.getServiceProvider(_req.serviceName);
+        string memory serviceFee = iServiceMarket.getServiceFee(_req.serviceName);
+        
+        _req.provider = provider;
+        _req.serviceFeeCap = serviceFee;
+    }
     
     /**
-     * @title Send the service request
+     * @notice Save the request callback
+     * @param _requestID Request id
+     * @param _callbackAddress Callback contract address
+     * @param _callbackFunction Callback function selector
+     */
+    function _saveRequestCallback(
+        bytes32 _requestID,
+        address _callbackAddress,
+        bytes4 _callbackFunction
+    )
+        internal
+    {
+        Callback memory cb;
+
+        cb.contractAddress = _callbackAddress;
+        cb.functionSelector = _callbackFunction;
+
+        callbacks[_requestID] = cb;
+    }
+
+    /**
+     * @notice Send the service request
      * @param _req Request
      */
     function _sendRequest(
@@ -206,10 +333,20 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     {
         requestID = keccak256(abi.encodePacked(this, requestCount));
         
+        _req.id = requestID;
         requests[requestID] = _req;
         requestCount += 1;
         
-        emit ServiceInvoked(requestID, _req.serviceName, _req.input, _req.timeout);
+        emit ServiceInvoked(
+            _req.id,
+            _req.chainID,
+            _req.contractAddress,
+            _req.serviceName,
+            _req.provider,
+            _req.input,
+            _req.serviceFeeCap,
+            _req.timeout
+        );
         
         return requestID;
     }

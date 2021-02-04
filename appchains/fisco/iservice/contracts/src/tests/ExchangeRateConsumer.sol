@@ -1,18 +1,19 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.10;
 
 import "../interfaces/iServiceInterface.sol";
 
-/*
- * @title Contract for price oracle powered by iService
+/**
+ * @title Contract for exchange rate consumer powered by iService
  */
-contract PriceOracle {
-    string public price; // latest price
+contract ExchangeRateConsumer {
+    string public rate; // latest exchange rate
     
     iServiceInterface iServiceContract; // iService contract address 
     
-    // oracle request variables
-    string serviceName = "oracle"; // oracle-specific service name
-    string input = "btc-usdt"; // feed name
+    // iService request variables
+    string serviceName = "exchange-rate"; // service name
+    string input = "{\"header\":{},\"body\":{\"pair\":\"USD-CNY\"}}"; // request input
+    uint256 timeout = 50; // request timeout
     
     // mapping the request id to RequestStatus
     mapping(bytes32 => RequestStatus) requests;
@@ -23,21 +24,21 @@ contract PriceOracle {
         bool responded; // request responded
     }
     
-    /*
-     * @title Event triggered when a request is sent
+    /**
+     * @notice Event triggered when a request is sent
      * @param _requestID Request id
      */
     event RequestSent(bytes32 _requestID);
     
-    /*
-     * @title Event triggered when a request is responded
+    /**
+     * @notice Event triggered when a request is responded
      * @param _requestID Request id
-     * @param _price Price
+     * @param _rate Exchange rate
      */
-    event RequestResponded(bytes32 _requestID, string _price);
+    event RequestResponded(bytes32 _requestID, string _rate);
     
-    /*
-     * @title Constructor
+    /**
+     * @notice Constructor
      * @param _iServiceContract Address of the iService contract
      * @param _serviceName Service name
      * @param _input Service request input
@@ -47,6 +48,7 @@ contract PriceOracle {
         address _iServiceContract,
         string memory _serviceName,
         string memory _input,
+        uint256 _timeout
     )
         public
     {
@@ -59,34 +61,38 @@ contract PriceOracle {
         if (bytes(_input).length > 0) {
             input = _input;
         }
+        
+        if (_timeout > 0) {
+            timeout = _timeout;
+        }
     }
     
-    /* 
-     * @title Make sure that the given request is valid
+    /**
+     * @notice Make sure that the given request is valid
      * @param _requestID Request id
      */
     modifier validRequest(bytes32 _requestID) {
-        require(requests[_requestID].sent, "PriceOracle: request does not exist");
-        require(!requests[_requestID].responded, "PriceOracle: request has been responded");
+        require(requests[_requestID].sent, "ExchangeRateService: request does not exist");
+        require(!requests[_requestID].responded, "ExchangeRateService: request has been responded");
         
         _;
     }
     
-    /*
-     * @title Send iService request
+    /**
+     * @notice Send iService request
      */
     function sendRequest()
         external
     {
-        bytes32 requestID = iServiceContract.callService(serviceName, input, 1, address(this), this.onResponse.selector);
+        bytes32 requestID = iServiceContract.callService(serviceName, input, timeout, address(this), this.onResponse.selector);
         
         emit RequestSent(requestID);
         
         requests[requestID].sent = true;
     }
     
-    /* 
-     * @title Callback function
+    /**
+     * @notice Callback function
      * @param _requestID Request id
      * @param _output Response output
      */
@@ -97,10 +103,9 @@ contract PriceOracle {
         external
         validRequest(_requestID)
     {
-        price = _output;
+        rate = _output;
         requests[_requestID].responded = true;
-        
-        emit RequestResponded(_requestID, price);
+
+        emit RequestResponded(_requestID, rate);
     }
-    
 }

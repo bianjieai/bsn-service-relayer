@@ -1,11 +1,11 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.10;
 
 /**
  * @title iService interface
  */
 interface iServiceInterface {
     /**
-     * @notice Initiate a service invocation
+     * @dev Initiate a service invocation
      * @param _serviceName Service name
      * @param _input Request input
      * @param _timeout Request timeout
@@ -22,7 +22,7 @@ interface iServiceInterface {
     ) external returns (bytes32 requestID);
 
     /**
-     * @notice Set the response of the specified service request
+     * @dev Set the response of the specified service request
      * @param _requestID Request id
      * @param _errMsg Error message of the service invocation
      * @param _output Response output
@@ -42,24 +42,36 @@ interface iServiceInterface {
  */
 contract iServiceClient {
     iServiceInterface iServiceCore; // iService Core contract address
+
+    // mapping the request id to Request
+    mapping(bytes32 => Request) requests;
     
-    // mapping the request id to RequestStatus
-    mapping(bytes32 => RequestStatus) requests;
-    
-    // request status
-    struct RequestStatus {
+    // request
+    struct Request {
+        address callbackAddress; // callback contract address
+        bytes4 callbackFunction; // callback function selector
         bool sent; // request sent
         bool responded; // request responded
     }
-    
+
     /*
-     * @notice Event triggered when the iService request is sent
+     * @dev Event triggered when the iService request is sent
      * @param _requestID Request id
      */
-    event IServiceRequestSent(bytes32 _requestID);
+    event RequestSent(bytes32 _requestID);
     
     /*
-     * @notice Make sure that the given request is valid
+     * @dev Make sure that the sender is the contract itself
+     * @param _requestID Request id
+     */
+    modifier onlySelf() {
+        require(msg.sender == address(this), "iServiceClient: sender must be the contract itself");
+        
+        _;
+    }
+
+    /*
+     * @dev Make sure that the given request is valid
      * @param _requestID Request id
      */
     modifier validRequest(bytes32 _requestID) {
@@ -70,13 +82,13 @@ contract iServiceClient {
     }
     
     /*
-     * @notice Send iService request
+     * @dev Send the iService request
      * @param _serviceName Service name
      * @param _input Service request input
      * @param _timeout Service request timeout
      * @param _callbackAddress Callback contract address
      * @param _callbackFunction Callback function selector
-     * @return Request id
+     * @return requestID Request id
      */
     function sendIServiceRequest(
         string memory _serviceName,
@@ -88,20 +100,48 @@ contract iServiceClient {
         internal
         returns (bytes32 requestID)
     {
-        requestID = iServiceCore.callService(_serviceName, _input, _timeout, _callbackAddress, _callbackFunction);
+        requestID = iServiceCore.callService(_serviceName, _input, _timeout, address(this), this.onResponse.selector);
         
-        emit IServiceRequestSent(requestID);
-        
-        requests[requestID].sent = true;
+        Request memory request = Request(
+            _callbackAddress,
+            _callbackFunction,
+            true,
+            false
+        );
+
+        requests[requestID] = request;
+
+        emit RequestSent(requestID);
         
         return requestID;
     }
 
+    /* 
+     * @dev Callback function
+     * @param _requestID Request id
+     * @param _output Response output
+     */
+    function onResponse(
+        bytes32 _requestID,
+        string calldata _output
+    )
+        external
+        validRequest(_requestID)
+    {
+        requests[_requestID].responded = true;
+        
+        address cbAddr = requests[_requestID].callbackAddress;
+        bytes4 cbFunc = requests[_requestID].callbackFunction;
+        
+        cbAddr.call(abi.encodeWithSelector(cbFunc, _requestID, _output));
+    }
+
     /**
-     * @notice Set the iService core contract address
-     * @param _iServiceCore The address of the iService core contract
+     * @dev Set the iService core contract address
+     * @param _iServiceCore Address of the iService core contract
      */
     function setIServiceCore(address _iServiceCore) internal {
+        require(_iServiceCore != address(0), "iServiceClient: iService core address can not be zero");
         iServiceCore = iServiceInterface(_iServiceCore);
     }
 }
@@ -243,6 +283,7 @@ contract NFTServiceConsumer is iServiceClient {
         string calldata _output
     )
         external
+        validRequest(_requestID)
     {
         string memory price = _parsePrice(_output);
         
@@ -263,6 +304,7 @@ contract NFTServiceConsumer is iServiceClient {
         string calldata _output
     )
         external
+        validRequest(_requestID)
     {
         nftID = _parseNFTID(_output);
 

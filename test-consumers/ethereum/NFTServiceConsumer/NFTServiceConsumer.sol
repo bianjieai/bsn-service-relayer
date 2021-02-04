@@ -5,7 +5,7 @@ pragma solidity ^0.6.10;
  */
 interface iServiceInterface {
     /**
-     * @notice Initiate a service invocation
+     * @dev Initiate a service invocation
      * @param _serviceName Service name
      * @param _input Request input
      * @param _timeout Request timeout
@@ -22,7 +22,7 @@ interface iServiceInterface {
     ) external returns (bytes32 requestID);
 
     /**
-     * @notice Set the response of the specified service request
+     * @dev Set the response of the specified service request
      * @param _requestID Request id
      * @param _errMsg Error message of the service invocation
      * @param _output Response output
@@ -42,24 +42,36 @@ interface iServiceInterface {
  */
 contract iServiceClient {
     iServiceInterface iServiceCore; // iService Core contract address
+
+    // mapping the request id to Request
+    mapping(bytes32 => Request) requests;
     
-    // mapping the request id to RequestStatus
-    mapping(bytes32 => RequestStatus) requests;
-    
-    // request status
-    struct RequestStatus {
+    // request
+    struct Request {
+        address callbackAddress; // callback contract address
+        bytes4 callbackFunction; // callback function selector
         bool sent; // request sent
         bool responded; // request responded
     }
-    
+
     /*
-     * @notice Event triggered when the iService request is sent
+     * @dev Event triggered when the iService request is sent
      * @param _requestID Request id
      */
-    event IServiceRequestSent(bytes32 _requestID);
+    event RequestSent(bytes32 _requestID);
     
     /*
-     * @notice Make sure that the given request is valid
+     * @dev Make sure that the sender is the contract itself
+     * @param _requestID Request id
+     */
+    modifier onlySelf() {
+        require(msg.sender == address(this), "iServiceClient: sender must be the contract itself");
+        
+        _;
+    }
+
+    /*
+     * @dev Make sure that the given request is valid
      * @param _requestID Request id
      */
     modifier validRequest(bytes32 _requestID) {
@@ -70,13 +82,13 @@ contract iServiceClient {
     }
     
     /*
-     * @notice Send iService request
+     * @dev Send the iService request
      * @param _serviceName Service name
      * @param _input Service request input
      * @param _timeout Service request timeout
      * @param _callbackAddress Callback contract address
      * @param _callbackFunction Callback function selector
-     * @return Request id
+     * @return requestID Request id
      */
     function sendIServiceRequest(
         string memory _serviceName,
@@ -88,20 +100,48 @@ contract iServiceClient {
         internal
         returns (bytes32 requestID)
     {
-        requestID = iServiceCore.callService(_serviceName, _input, _timeout, _callbackAddress, _callbackFunction);
+        requestID = iServiceCore.callService(_serviceName, _input, _timeout, address(this), this.onResponse.selector);
         
-        emit IServiceRequestSent(requestID);
-        
-        requests[requestID].sent = true;
+        Request memory request = Request(
+            _callbackAddress,
+            _callbackFunction,
+            true,
+            false
+        );
+
+        requests[requestID] = request;
+
+        emit RequestSent(requestID);
         
         return requestID;
     }
 
+    /* 
+     * @dev Callback function
+     * @param _requestID Request id
+     * @param _output Response output
+     */
+    function onResponse(
+        bytes32 _requestID,
+        string calldata _output
+    )
+        external
+        validRequest(_requestID)
+    {
+        requests[_requestID].responded = true;
+        
+        address cbAddr = requests[_requestID].callbackAddress;
+        bytes4 cbFunc = requests[_requestID].callbackFunction;
+        
+        cbAddr.call(abi.encodeWithSelector(cbFunc, _requestID, _output));
+    }
+
     /**
-     * @notice Set the iService core contract address
-     * @param _iServiceCore The address of the iService core contract
+     * @dev Set the iService core contract address
+     * @param _iServiceCore Address of the iService core contract
      */
     function setIServiceCore(address _iServiceCore) internal {
+        require(_iServiceCore != address(0), "iServiceClient: iService core address can not be zero");
         iServiceCore = iServiceInterface(_iServiceCore);
     }
 }
@@ -110,7 +150,7 @@ contract iServiceClient {
  * @title Contract for inter-chain NFT minting powered by iService
  * The service is supported by price service
  */
-contract NFTService is iServiceClient {
+contract NFTServiceConsumer is iServiceClient {
     // price service variables
     string private priceServiceName = "oracle-price"; // price service name
     string private priceRequestInput = '{"header":{},"body":{"pair":"usdt-eth"}}'; // price request input
@@ -243,6 +283,7 @@ contract NFTService is iServiceClient {
         string calldata _output
     )
         external
+        validRequest(_requestID)
     {
         string memory price = _parsePrice(_output);
         
@@ -263,6 +304,7 @@ contract NFTService is iServiceClient {
         string calldata _output
     )
         external
+        validRequest(_requestID)
     {
         nftID = _parseNFTID(_output);
 
@@ -376,77 +418,6 @@ contract NFTService is iServiceClient {
         JsmnSolLib.Token memory t = tokens[_pos];
         return JsmnSolLib.getBytes(_json, t.start, t.end);
     }
-    
-    /*
-     * @notice Convert the byte array to a hex string
-     * @param _data Source bytes
-     */
-    // function _bytes2Hex(bytes memory _data) returns (string memory) {
-    //     uint ascii_0 = 48;
-    //     uint ascii_A = 65;
-    //     uint ascii_a = 97;
-
-    //     bytes memory res = new bytes((_data.length * 2);
-
-    //     for (uint i = 0; i < _data.length; i++) {
-    //         uint b = uint(_data[i]);
-    //         string memory str = JsmnSolLib.uint2str(b);
-    //         bytes memory strBz = bytes(str)
-            
-    //         if (strBz.length == 1) {
-    //             res[i] = bytes1("0");
-    //             res[i+1] = bytes1(str);
-    //         } else {
-    //             res[i] = bytes1(strBz[0]);
-    //             res[i+1] = bytes1(strBz[1]);
-    //         }
-            
-    //     //  if (_a > 96) {
-    //     //         b[i] = _a - 97 + 10;
-    //     //  }
-    //     //     else if (_a > 66) {
-    //     //         b[i] = _a - 65 + 10;
-    //     //     }
-    //     //     else {
-    //     //         b[i] = _a - 48;
-    //     //     }
-    //     // }
-
-    //     // bytes memory c = new bytes(b.length / 2);
-    //     // for (uint _i = 0; _i < b.length; _i += 2) {
-    //     //     c[_i / 2] = byte(b[_i] * 16 + b[_i + 1]);
-    //     // }
-
-    //     // return c;
-        
-    //     // uint _ascii_0 = 48;
-    //     // uint _ascii_A = 65;
-    //     // uint _ascii_a = 97;
-
-    //     // bytes memory a = bytes(data);
-    //     // uint[] memory b = new uint[](a.length);
-
-    //     // for (uint i = 0; i < a.length; i++) {
-    //     //     uint _a = uint(a[i]);
-
-    //     //     if (_a > 96) {
-    //     //         b[i] = _a - 97 + 10;
-    //     //     }
-    //     //     else if (_a > 66) {
-    //     //         b[i] = _a - 65 + 10;
-    //     //     }
-    //     //     else {
-    //     //         b[i] = _a - 48;
-    //     //     }
-    //     // }
-
-    //     // bytes memory c = new bytes(b.length / 2);
-    //     // for (uint _i = 0; _i < b.length; _i += 2) {
-    //     //     c[_i / 2] = byte(b[_i] * 16 + b[_i + 1]);
-    //     // }
-
-    //     // return c;
-    // }
 }
 
 /*

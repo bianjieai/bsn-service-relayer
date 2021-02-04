@@ -5,7 +5,7 @@ pragma solidity ^0.6.10;
  */
 interface iServiceInterface {
     /**
-     * @notice Initiate a service invocation
+     * @dev Initiate a service invocation
      * @param _serviceName Service name
      * @param _input Request input
      * @param _timeout Request timeout
@@ -22,7 +22,7 @@ interface iServiceInterface {
     ) external returns (bytes32 requestID);
 
     /**
-     * @notice Set the response of the specified service request
+     * @dev Set the response of the specified service request
      * @param _requestID Request id
      * @param _errMsg Error message of the service invocation
      * @param _output Response output

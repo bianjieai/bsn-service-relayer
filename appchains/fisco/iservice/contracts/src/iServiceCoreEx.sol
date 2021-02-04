@@ -41,7 +41,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
         string serviceFeeCap; // service fee cap
         uint256 timeout; // request timeout
     }
-
+ 
     // request callback
     struct Callback {
         address contractAddress; // callback contract address
@@ -56,7 +56,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @notice Event triggered when the service invocation is initiated
+     * @dev Event triggered when the service invocation is initiated
      * @param _requestID Request id
      * @param _chainID Chain id
      * @param _contractAddress Contract address
@@ -78,7 +78,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     );
 
     /**
-     * @notice Constructor
+     * @dev Constructor
      * @param _chainID Chain ID
      * @param _iServiceMarket iService market contract address
      * @param _relayer Relayer address
@@ -90,7 +90,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
         _setChainID(_chainID);
         _setIServiceMarket(_iServiceMarket);
 
-         if (_relayer != address(0)) {
+        if (_relayer != address(0)) {
             relayer = _relayer;
         } else {
             relayer = owner();
@@ -98,7 +98,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @notice Make sure that the request is valid
+     * @dev Make sure that the request is valid
      * @param _serviceName Service name
      * @param _input Request input
      * @param _timeout Request timeout
@@ -117,7 +117,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @notice Make sure that the request exists and has not been responded
+     * @dev Make sure that the request exists and has not been responded
      * @param _requestID Request id
      */
     modifier validRequest(bytes32 _requestID) {
@@ -128,7 +128,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
     
     /** 
-     * @notice Make sure that the sender is the relayer
+     * @dev Make sure that the sender is the relayer
      */
     modifier onlyRelayer() {
         require(msg.sender == relayer, "iServiceCoreEx: sender is not the relayer");
@@ -136,7 +136,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @notice Initiate a service invocation
+     * @dev Initiate a service invocation
      * @param _serviceName Service name
      * @param _input Request input
      * @param _timeout Request timeout
@@ -174,7 +174,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @notice Set the response of the specified service request
+     * @dev Set the response of the specified service request
      * @param _requestID Request id
      * @param _errMsg Error message of the service invocation
      * @param _output Response output
@@ -211,7 +211,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @notice Retrieve the response of the given service request 
+     * @dev Retrieve the response of the given service request 
      * @param _requestID Request id
      * @return Response
      */

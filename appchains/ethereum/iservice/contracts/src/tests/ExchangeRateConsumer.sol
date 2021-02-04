@@ -1,18 +1,18 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.10;
 
 import "../interfaces/iServiceInterface.sol";
 
 /**
- * @title Contract for exchange rate service powered by iService
+ * @title Contract for exchange rate consumer powered by iService
  */
-contract ExchangeRateService {
+contract ExchangeRateConsumer {
     string public rate; // latest exchange rate
     
     iServiceInterface iServiceContract; // iService contract address 
     
     // iService request variables
-    string serviceName = "exchange_rate"; // service name
-    string input = "{\"pair\":\"USD-CNY\"}"; // request input
+    string serviceName = "exchange-rate"; // service name
+    string input = "{\"header\":{},\"body\":{\"pair\":\"USD-CNY\"}}"; // request input
     uint256 timeout = 50; // request timeout
     
     // mapping the request id to RequestStatus
@@ -25,20 +25,20 @@ contract ExchangeRateService {
     }
     
     /**
-     * @title Event triggered when a request is sent
+     * @notice Event triggered when a request is sent
      * @param _requestID Request id
      */
     event RequestSent(bytes32 _requestID);
     
     /**
-     * @title Event triggered when a request is responded
+     * @notice Event triggered when a request is responded
      * @param _requestID Request id
      * @param _rate Exchange rate
      */
     event RequestResponded(bytes32 _requestID, string _rate);
     
     /**
-     * @title Constructor
+     * @notice Constructor
      * @param _iServiceContract Address of the iService contract
      * @param _serviceName Service name
      * @param _input Service request input
@@ -68,7 +68,7 @@ contract ExchangeRateService {
     }
     
     /**
-     * @title Make sure that the given request is valid
+     * @notice Make sure that the given request is valid
      * @param _requestID Request id
      */
     modifier validRequest(bytes32 _requestID) {
@@ -79,7 +79,7 @@ contract ExchangeRateService {
     }
     
     /**
-     * @title Send iService request
+     * @notice Send iService request
      */
     function sendRequest()
         external
@@ -92,7 +92,7 @@ contract ExchangeRateService {
     }
     
     /**
-     * @title Callback function
+     * @notice Callback function
      * @param _requestID Request id
      * @param _output Response output
      */
@@ -105,7 +105,7 @@ contract ExchangeRateService {
     {
         rate = _output;
         requests[_requestID].responded = true;
-        
+
         emit RequestResponded(_requestID, rate);
     }
 }

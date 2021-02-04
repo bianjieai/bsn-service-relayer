@@ -1,17 +1,17 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.10;
 
 /**
  * @title iService interface
  */
 interface iServiceInterface {
     /**
-     * @title Initiate a service invocation
+     * @dev Initiate a service invocation
      * @param _serviceName Service name
      * @param _input Request input
      * @param _timeout Request timeout
      * @param _callbackAddress Callback contract address
      * @param _callbackFunction Callback function selector
-     * @return Request id
+     * @return requestID Request id
      */
     function callService(
         string calldata _serviceName,
@@ -22,7 +22,7 @@ interface iServiceInterface {
     ) external returns (bytes32 requestID);
 
     /**
-     * @title Set the response of the specified service request
+     * @dev Set the response of the specified service request
      * @param _requestID Request id
      * @param _errMsg Error message of the service invocation
      * @param _output Response output
