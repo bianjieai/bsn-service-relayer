@@ -108,6 +108,16 @@ func (r *Relayer) StopChain(chainID string) error {
 	return nil
 }
 
+// GetChain gets the specified app chain
+func (r *Relayer) GetChain(chainID string) (appChain AppChainI, err error) {
+	appChain, ok := r.AppChains[chainID]
+	if !ok {
+		return nil, fmt.Errorf("chain ID %s does not exist", chainID)
+	}
+
+	return appChain, nil
+}
+
 // GetChains retrieves the current active app chains
 func (r *Relayer) GetChains() []string {
 	chains := make([]string, 0)

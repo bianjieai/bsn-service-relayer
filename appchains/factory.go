@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"relayer/appchains/fisco"
+	// "relayer/appchains/ethereum"
 	"relayer/core"
 	"relayer/store"
 )
@@ -25,11 +26,9 @@ func NewAppChainFactory(store *store.Store) *AppChainFactory {
 func (f *AppChainFactory) BuildAppChain(chainType string, chainParams []byte) (core.AppChainI, error) {
 	switch strings.ToLower(chainType) {
 	case "eth":
-		// return ethereum.MakeEthChain(ethereum.NewConfig(f.Config)), nil
 		return nil, nil
 
 	case "fabric":
-		// return fabric.MakeFabricChain(fabric.NewConfig(f.Config)), nil
 		return nil, nil
 
 	case "fisco":

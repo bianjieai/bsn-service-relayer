@@ -6,37 +6,100 @@ import (
 
 // ChainManager defines a service for app chains management
 type ChainManager struct {
-	Relayer *core.Relayer
+	relayer *core.Relayer
 }
 
 // NewChainManager constructs a new ChainManager instance
 func NewChainManager(r *core.Relayer) *ChainManager {
 	return &ChainManager{
-		Relayer: r,
+		relayer: r,
 	}
 }
 
 // AddChain adds a new app chain for the relayer
 func (cm *ChainManager) AddChain(params []byte) (chainID string, err error) {
-	return cm.Relayer.AddChain(params)
+	return cm.relayer.AddChain(params)
 }
 
 // StartChain starts to relay an existent app chain
 func (cm *ChainManager) StartChain(chainID string) error {
-	return cm.Relayer.StartChain(chainID)
+	return cm.relayer.StartChain(chainID)
 }
 
 // StopChain stops to relay an app chain
 func (cm *ChainManager) StopChain(chainID string) error {
-	return cm.Relayer.StopChain(chainID)
+	return cm.relayer.StopChain(chainID)
 }
 
 // GetChains gets all active app chains
 func (cm *ChainManager) GetChains() []string {
-	return cm.Relayer.GetChains()
+	return cm.relayer.GetChains()
 }
 
 // GetChainStatus retrieves the status of the specified app chain
 func (cm *ChainManager) GetChainStatus(chainID string) (state bool, height int64, err error) {
-	return cm.Relayer.GetChainStatus(chainID)
+	return cm.relayer.GetChainStatus(chainID)
+}
+
+// MarketManager defines a service for the iService market management on app chains
+type MarketManager struct {
+	relayer *core.Relayer
+}
+
+// NewMarketManager constructs a new MarketManager instance
+func NewMarketManager(r *core.Relayer) *MarketManager {
+	return &MarketManager{
+		relayer: r,
+	}
+}
+
+// AddServiceBinding adds the given service binding on the specified app chain
+func (mm *MarketManager) AddServiceBinding(
+	chainID string,
+	req AddServiceBindingRequest,
+) error {
+	appChain, err := mm.relayer.GetChain(chainID)
+	if err != nil {
+		return err
+	}
+
+	return appChain.AddServiceBinding(
+		req.ServiceName,
+		req.Schemas,
+		req.Provider,
+		req.ServiceFee,
+		req.QoS,
+	)
+}
+
+// UpdateServiceBinding updates the given service binding on the specified app chain
+func (mm *MarketManager) UpdateServiceBinding(
+	chainID string,
+	serviceName string,
+	req UpdateServiceBindingRequest,
+) error {
+	appChain, err := mm.relayer.GetChain(chainID)
+	if err != nil {
+		return err
+	}
+
+	return appChain.UpdateServiceBinding(
+		serviceName,
+		req.Provider,
+		req.ServiceFee,
+		req.QoS,
+	)
+}
+
+// GetServiceBinding gets the given service binding on the specified app chain
+func (mm *MarketManager) GetServiceBinding(
+	chainID string,
+	serviceName string,
+) (interface{}, error) {
+	appChain, err := mm.relayer.GetChain(chainID)
+	if err != nil {
+		return nil, err
+	}
+
+	return appChain.GetServiceBinding(serviceName)
 }

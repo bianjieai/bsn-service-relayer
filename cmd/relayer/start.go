@@ -44,7 +44,9 @@ func StartCmd() *cobra.Command {
 			relayerInstance := core.NewRelayer(appChainType, hubChain, appChainFactory, logging.Logger)
 
 			chainManager := server.NewChainManager(relayerInstance)
-			server.StartWebServer(chainManager)
+			marketManger := server.NewMarketManager(relayerInstance)
+
+			server.StartWebServer(chainManager, marketManger)
 
 			return nil
 		},

@@ -1,5 +1,7 @@
 package server
 
+import "fmt"
+
 const (
 	CODE_SUCCESS = 0
 	CODE_ERROR   = 1
@@ -21,6 +23,22 @@ type ChainStatus struct {
 	Height int64 `json:"height,omitempty"`
 }
 
+// AddServiceBindingRequest defines the request to add a service binding
+type AddServiceBindingRequest struct {
+	ServiceName string `json:"service_name"`
+	Schemas     string `json:"schemas"`
+	Provider    string `json:"provider"`
+	ServiceFee  string `json:"service_fee"`
+	QoS         uint64 `json:"qos"`
+}
+
+// UpdateServiceBindingRequest defines the request to update a service binding
+type UpdateServiceBindingRequest struct {
+	Provider   string `json:"provider"`
+	ServiceFee string `json:"service_fee"`
+	QoS        uint64 `json:"qos"`
+}
+
 // SuccessResponse defines the response on success
 type SuccessResponse struct {
 	Code   int         `json:"code"`
@@ -31,4 +49,22 @@ type SuccessResponse struct {
 type ErrorResponse struct {
 	Code  int    `json:"code"`
 	Error string `json:"error"`
+}
+
+// ValidateChainID validates the given chain ID
+func ValidateChainID(chainID string) error {
+	if len(chainID) == 0 {
+		return fmt.Errorf("chain ID can not be empty")
+	}
+
+	return nil
+}
+
+// ValidateServiceName validates the given service name
+func ValidateServiceName(serviceName string) error {
+	if len(serviceName) == 0 {
+		return fmt.Errorf("service name can not be empty")
+	}
+
+	return nil
 }
