@@ -19,16 +19,19 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     mapping(bytes32 => Response) responses;
 
     // chain id
-    string chainID;
+    string public chainID; // can be removed when IBC enabled
 
     // global request count
     uint256 public requestCount;
 
     // address allowed to relay the interchain requests
-    address relayer;
+    address public relayer;
 
     // iService market used to query the service binding
     iServiceMarketInterface public iServiceMarket;
+
+    // empty input
+    string emptyInput = "{}";
     
     // service request
     struct Request {
@@ -100,17 +103,14 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     /**
      * @dev Make sure that the request is valid
      * @param _serviceName Service name
-     * @param _input Request input
      * @param _timeout Request timeout
      */
     modifier checkRequest(
         string memory _serviceName,
-        string memory _input,
         uint256 _timeout
     )
     {
         require(bytes(_serviceName).length > 0, "iServiceCoreEx: service name can not be empty");
-        require(bytes(_input).length > 0, "iServiceCoreEx: request input can not be empty");
         require(_timeout > 0, "iServiceCoreEx: request timeout must be greater than 0");
         
         _;
@@ -153,7 +153,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     )
         external
         override
-        checkRequest(_serviceName, _input, _timeout)
+        checkRequest(_serviceName, _timeout)
         returns (bytes32 requestID)
     {
         Request memory req;
@@ -163,6 +163,10 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
         req.serviceName = _serviceName;
         req.input = _input;
         req.timeout= _timeout;
+
+        if (bytes(req.input).length == 0) {
+            req.input = emptyInput;
+        }
         
         _populateRequest(req);
         requestID = _sendRequest(req);
@@ -286,6 +290,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
         Request memory _req
     )
         internal
+        view
     {
         bool exist = iServiceMarket.serviceBindingExists(_req.serviceName);
         require(exist, "iServiceCoreEx: service does not exist in the service market");
