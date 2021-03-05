@@ -8,6 +8,7 @@ import (
 func (r *Relayer) HandleInterchainRequest(chainID string, request InterchainRequest) error {
 	r.Logger.Infof("got the interchain request on %s: %+v", chainID, request)
 
+	// TODO
 	indexer.OnInterchainRequestReceived()
 
 	callback := func(icRequestID string, response ResponseI) {
@@ -17,6 +18,7 @@ func (r *Relayer) HandleInterchainRequest(chainID string, request InterchainRequ
 			response,
 		)
 
+		// TODO
 		indexer.OnInterchainRequestHandled()
 
 		err := r.AppChains[chainID].SendResponse(request.ID, response)

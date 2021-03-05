@@ -42,7 +42,7 @@ relayer start
 
 ## Web API
 
-The relayer deamon exposes the following REST APIs for convenience:
+The relayer daemon exposes the following REST APIs for convenience:
 
 ### Application chain management
 

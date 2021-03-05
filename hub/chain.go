@@ -114,6 +114,7 @@ func (ic IritaHubChain) SendInterchainRequest(
 
 	logging.Logger.Infof("request context created on %s: %s", ic.ChainID, reqCtxID)
 
+	// TODO
 	indexer.OnInterchainRequestSent()
 
 	requests, err := ic.ServiceClient.QueryRequestsByReqCtx(reqCtxID, 1)
@@ -139,13 +140,14 @@ func (ic IritaHubChain) BuildServiceInvocationRequest(
 		return service.InvokeServiceRequest{}, err
 	}
 
-	// TODO: chain id and optional contract address will be added into the header on-chain when IBC enabled
+	// TODO: request id, chain id and contract address will be added into the header on-chain when IBC enabled
 	var input ServiceInput
 	err = json.Unmarshal([]byte(request.Input), &input)
 	if err != nil {
 		return service.InvokeServiceRequest{}, err
 	}
 
+	input.AddHeader("RequestID", request.ID)
 	input.AddHeader("SourceChainID", request.ChainID)
 	input.AddHeader("ContractAddress", request.ContractAddress)
 

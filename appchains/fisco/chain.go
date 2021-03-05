@@ -173,6 +173,7 @@ func (f *FISCOChain) SendResponse(requestID string, response core.ResponseI) err
 		return err
 	}
 
+	// TODO
 	indexer.OnInterchainRequestResponseSent()
 
 	err = f.waitForReceipt(tx, "SetResponse")
@@ -180,6 +181,7 @@ func (f *FISCOChain) SendResponse(requestID string, response core.ResponseI) err
 		return err
 	}
 
+	// TODO
 	indexer.OnInterchainRequestSucceeded()
 
 	return nil
