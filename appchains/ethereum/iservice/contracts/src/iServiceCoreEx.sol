@@ -18,9 +18,6 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     // mapping the request id to Response
     mapping(bytes32 => Response) responses;
 
-    // chain id
-    string public chainID; // can be removed when IBC enabled
-
     // global request count
     uint256 public requestCount;
 
@@ -31,12 +28,11 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     iServiceMarketInterface public iServiceMarket;
 
     // empty input
-    string emptyInput = "{}";
+    string emptyInput = '{"header":{},"body":{}}';
     
     // service request
     struct Request {
         bytes32 id; // request id
-        string chainID; // chain id
         address contractAddress; // address of the contract initiating the request 
         string serviceName; // service name
         string provider; // service provider
@@ -61,7 +57,6 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     /**
      * @dev Event triggered when the service invocation is initiated
      * @param _requestID Request id
-     * @param _chainID Chain id
      * @param _contractAddress Contract address
      * @param _serviceName Service name
      * @param _provider Provider address
@@ -71,7 +66,6 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
      */
     event ServiceInvoked(
         bytes32 _requestID,
-        string _chainID,
         address _contractAddress,
         string _serviceName,
         string _provider,
@@ -82,15 +76,13 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
 
     /**
      * @dev Constructor
-     * @param _chainID Chain ID
      * @param _iServiceMarket iService market contract address
      * @param _relayer Relayer address
      */
-    constructor(string memory _chainID, address _iServiceMarket, address _relayer)
+    constructor(address _iServiceMarket, address _relayer)
         public
         Ownable()
     {
-        _setChainID(_chainID);
         _setIServiceMarket(_iServiceMarket);
 
         if (_relayer != address(0)) {
@@ -158,7 +150,6 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     {
         Request memory req;
 
-        req.chainID = chainID;
         req.contractAddress = msg.sender;
         req.serviceName = _serviceName;
         req.input = _input;
@@ -257,19 +248,6 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @notice Set the chain ID
-     * @param _chainID Chain ID
-     */
-    function _setChainID(
-        string memory _chainID
-    )
-        internal
-    {
-        require(bytes(_chainID).length > 0, "iServiceCoreEx: chain ID can not be empty");
-        chainID = _chainID;
-    }
-
-    /**
      * @notice Set the iService market
      * @param _address iService market contract address
      */
@@ -344,7 +322,6 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
         
         emit ServiceInvoked(
             _req.id,
-            _req.chainID,
             _req.contractAddress,
             _req.serviceName,
             _req.provider,

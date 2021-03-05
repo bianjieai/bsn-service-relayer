@@ -1,8 +1,14 @@
 package core
 
+import (
+	"relayer/indexer"
+)
+
 // HandleInterchainRequest handles the interchain request
 func (r *Relayer) HandleInterchainRequest(chainID string, request InterchainRequest) error {
 	r.Logger.Infof("got the interchain request on %s: %+v", chainID, request)
+
+	indexer.OnInterchainRequestReceived()
 
 	callback := func(icRequestID string, response ResponseI) {
 		r.Logger.Infof(
@@ -10,6 +16,8 @@ func (r *Relayer) HandleInterchainRequest(chainID string, request InterchainRequ
 			r.HubChain.GetChainID(),
 			response,
 		)
+
+		indexer.OnInterchainRequestHandled()
 
 		err := r.AppChains[chainID].SendResponse(request.ID, response)
 		if err != nil {

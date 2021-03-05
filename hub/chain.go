@@ -1,6 +1,7 @@
 package hub
 
 import (
+	"encoding/json"
 	"fmt"
 
 	servicesdk "github.com/irisnet/service-sdk-go"
@@ -9,6 +10,7 @@ import (
 	"github.com/irisnet/service-sdk-go/types/store"
 
 	"relayer/core"
+	"relayer/indexer"
 	"relayer/logging"
 )
 
@@ -112,6 +114,8 @@ func (ic IritaHubChain) SendInterchainRequest(
 
 	logging.Logger.Infof("request context created on %s: %s", ic.ChainID, reqCtxID)
 
+	indexer.OnInterchainRequestSent()
+
 	requests, err := ic.ServiceClient.QueryRequestsByReqCtx(reqCtxID, 1)
 	if err != nil {
 		return err
@@ -135,10 +139,25 @@ func (ic IritaHubChain) BuildServiceInvocationRequest(
 		return service.InvokeServiceRequest{}, err
 	}
 
+	// TODO: chain id and optional contract address will be added into the header on-chain when IBC enabled
+	var input ServiceInput
+	err = json.Unmarshal([]byte(request.Input), &input)
+	if err != nil {
+		return service.InvokeServiceRequest{}, err
+	}
+
+	input.AddHeader("SourceChainID", request.ChainID)
+	input.AddHeader("ContractAddress", request.ContractAddress)
+
+	serviceInput, err := json.Marshal(input)
+	if err != nil {
+		return service.InvokeServiceRequest{}, err
+	}
+
 	return service.InvokeServiceRequest{
 		ServiceName:   request.ServiceName,
 		Providers:     []string{request.Provider},
-		Input:         request.Input,
+		Input:         string(serviceInput),
 		Timeout:       int64(request.Timeout),
 		ServiceFeeCap: serviceFeeCap,
 	}, nil
