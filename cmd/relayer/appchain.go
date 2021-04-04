@@ -93,10 +93,6 @@ func UpdateServiceBindingCmd() *cobra.Command {
 				return err
 			}
 
-			if err != nil {
-				return err
-			}
-
 			err = appChain.UpdateServiceBinding(args[0], args[1], args[2], qos)
 			if err != nil {
 				return err

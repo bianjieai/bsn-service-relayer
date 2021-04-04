@@ -27,6 +27,8 @@ func NewRelayer(appChainType string, hub HubChainI, appChainFactory AppChainFact
 		HubChain:        hub,
 		AppChainFactory: appChainFactory,
 		Logger:          logger,
+		AppChains:       map[string]AppChainI{},
+		AppChainStates:  map[string]bool{},
 	}
 }
 
