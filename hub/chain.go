@@ -107,7 +107,7 @@ func (ic IritaHubChain) SendInterchainRequest(
 		return err
 	}
 
-	reqCtxID, err := ic.ServiceClient.InvokeService(invokeServiceReq, ic.BuildBaseTx())
+	reqCtxID, _, err := ic.ServiceClient.InvokeService(invokeServiceReq, ic.BuildBaseTx())
 	if err != nil {
 		return err
 	}
