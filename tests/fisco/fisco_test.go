@@ -35,14 +35,20 @@ func (suite *FISCOTestSuite) TestDeployIServiceContracts() {
 	transactOpts := suite.client.GetTransactOpts()
 
 	// deploy iservice market extension contract
-	serviceMarketAddr, tx, _, err := iservice.DeployIServiceMarketEx(transactOpts, suite.client)
+	iserviceMarketAddr, tx, _, err := iservice.DeployIServiceMarketEx(transactOpts, suite.client)
 	suite.NoError(err)
 
-	fmt.Printf("iservice market extension deployed, contract address: %s, tx hash: %s", serviceMarketAddr.String(), tx.Hash().String())
+	fmt.Printf("iservice market extension deployed, contract address: %s, tx hash: %s", iserviceMarketAddr.String(), tx.Hash().String())
 
 	// deploy iservice core extension contract
-	serviceCoreAddr, tx, _, err := iservice.DeployIServiceCoreEx(transactOpts, suite.client, "fisco-1-1", serviceMarketAddr, transactOpts.From)
+	iserviceCoreAddr, tx, _, err := iservice.DeployIServiceCoreEx(transactOpts, suite.client, iserviceMarketAddr, transactOpts.From)
 	suite.NoError(err)
 
-	fmt.Printf("iservice core extension deployed, contract address: %s, tx hash: %s", serviceCoreAddr.String(), tx.Hash().String())
+	fmt.Printf("iservice core extension deployed, contract address: %s, tx hash: %s", iserviceCoreAddr.String(), tx.Hash().String())
+
+	// deploy iservice proxy contract
+	iserviceDelegatorAddr, tx, _, err := iservice.DeployIServiceDelegator(transactOpts, suite.client, iserviceCoreAddr)
+	suite.NoError(err)
+
+	fmt.Printf("iservice delegator deployed, contract address: %s, tx hash: %s", iserviceDelegatorAddr.String(), tx.Hash().String())
 }

@@ -18,22 +18,21 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     // mapping the request id to Response
     mapping(bytes32 => Response) responses;
 
-    // chain id
-    string chainID;
-
     // global request count
     uint256 public requestCount;
 
     // address allowed to relay the interchain requests
-    address relayer;
+    address public relayer;
 
     // iService market used to query the service binding
     iServiceMarketInterface public iServiceMarket;
+
+    // empty input
+    string emptyInput = '{"header":{},"body":{}}';
     
     // service request
     struct Request {
         bytes32 id; // request id
-        string chainID; // chain id
         address contractAddress; // address of the contract initiating the request 
         string serviceName; // service name
         string provider; // service provider
@@ -58,7 +57,6 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     /**
      * @dev Event triggered when the service invocation is initiated
      * @param _requestID Request id
-     * @param _chainID Chain id
      * @param _contractAddress Contract address
      * @param _serviceName Service name
      * @param _provider Provider address
@@ -68,7 +66,6 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
      */
     event ServiceInvoked(
         bytes32 _requestID,
-        string _chainID,
         address _contractAddress,
         string _serviceName,
         string _provider,
@@ -79,15 +76,13 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
 
     /**
      * @dev Constructor
-     * @param _chainID Chain ID
      * @param _iServiceMarket iService market contract address
      * @param _relayer Relayer address
      */
-    constructor(string memory _chainID, address _iServiceMarket, address _relayer)
+    constructor(address _iServiceMarket, address _relayer)
         public
         Ownable()
     {
-        _setChainID(_chainID);
         _setIServiceMarket(_iServiceMarket);
 
         if (_relayer != address(0)) {
@@ -100,17 +95,14 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     /**
      * @dev Make sure that the request is valid
      * @param _serviceName Service name
-     * @param _input Request input
      * @param _timeout Request timeout
      */
     modifier checkRequest(
         string memory _serviceName,
-        string memory _input,
         uint256 _timeout
     )
     {
         require(bytes(_serviceName).length > 0, "iServiceCoreEx: service name can not be empty");
-        require(bytes(_input).length > 0, "iServiceCoreEx: request input can not be empty");
         require(_timeout > 0, "iServiceCoreEx: request timeout must be greater than 0");
         
         _;
@@ -153,16 +145,19 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     )
         external
         override
-        checkRequest(_serviceName, _input, _timeout)
+        checkRequest(_serviceName, _timeout)
         returns (bytes32 requestID)
     {
         Request memory req;
 
-        req.chainID = chainID;
         req.contractAddress = msg.sender;
         req.serviceName = _serviceName;
         req.input = _input;
         req.timeout= _timeout;
+
+        if (bytes(req.input).length == 0) {
+            req.input = emptyInput;
+        }
         
         _populateRequest(req);
         requestID = _sendRequest(req);
@@ -253,19 +248,6 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @notice Set the chain ID
-     * @param _chainID Chain ID
-     */
-    function _setChainID(
-        string memory _chainID
-    )
-        internal
-    {
-        require(bytes(_chainID).length > 0, "iServiceCoreEx: chain ID can not be empty");
-        chainID = _chainID;
-    }
-
-    /**
      * @notice Set the iService market
      * @param _address iService market contract address
      */
@@ -286,6 +268,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
         Request memory _req
     )
         internal
+        view
     {
         bool exist = iServiceMarket.serviceBindingExists(_req.serviceName);
         require(exist, "iServiceCoreEx: service does not exist in the service market");
@@ -339,7 +322,6 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
         
         emit ServiceInvoked(
             _req.id,
-            _req.chainID,
             _req.contractAddress,
             _req.serviceName,
             _req.provider,

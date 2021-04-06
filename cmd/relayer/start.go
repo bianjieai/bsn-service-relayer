@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/spf13/cobra"
+
 	"relayer/appchains"
 	"relayer/appchains/fisco"
 	cfg "relayer/config"
@@ -83,7 +84,10 @@ func StartCmd() *cobra.Command {
 				}
 			}
 			chainManager := server.NewChainManager(relayerInstance)
-			server.StartWebServer(chainManager)
+			marketManger := server.NewMarketManager(relayerInstance)
+
+			server.StartWebServer(chainManager, marketManger)
+
 			return nil
 		},
 	}

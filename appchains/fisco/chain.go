@@ -18,6 +18,7 @@ import (
 	"relayer/appchains/fisco/iservice"
 	"relayer/common"
 	"relayer/core"
+	"relayer/indexer"
 	"relayer/logging"
 	"relayer/store"
 )
@@ -177,7 +178,18 @@ func (f *FISCOChain) SendResponse(requestID string, response core.ResponseI) err
 		return err
 	}
 
-	return f.waitForReceipt(tx, "SetResponse")
+	// TODO
+	indexer.OnInterchainRequestResponseSent()
+
+	err = f.waitForReceipt(tx, "SetResponse")
+	if err != nil {
+		return err
+	}
+
+	// TODO
+	indexer.OnInterchainRequestSucceeded()
+
+	return nil
 }
 
 // AddServiceBinding implements AppChainI
@@ -220,7 +232,7 @@ func (f *FISCOChain) GetServiceBinding(serviceName string) (core.ServiceBindingI
 func (f *FISCOChain) buildInterchainRequest(e *iservice.IServiceCoreExServiceInvoked) core.InterchainRequest {
 	return core.InterchainRequest{
 		ID:              hex.EncodeToString(e.RequestID[:]),
-		ChainID:         e.ChainID,
+		ChainID:         f.ChainID,
 		ContractAddress: e.ContractAddress.String(),
 		ServiceName:     e.ServiceName,
 		Provider:        e.Provider,

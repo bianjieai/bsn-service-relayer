@@ -17,3 +17,8 @@ test-eth:
 	@echo "sending the interchain request to ethereum for testing..."
 	@go test -mod=readonly -count=1 relayer/tests/ethereum
 	@echo "sent successfully"
+
+test-fisco:
+	@echo "deploying the iService contracts to FISCO BCOS for testing..."
+	@go test -mod=readonly -count=1 relayer/tests/fisco
+	@echo "deployed successfully"

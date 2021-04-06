@@ -1,4 +1,4 @@
-pragma solidity ^0.6.10;
+pragma solidity ^0.4.24;
 
 /**
  * @title iServiceDelegator is intended to be a proxy to the underlying iService Core contract
@@ -26,9 +26,11 @@ contract iServiceDelegator {
 
     /**
      * @dev Constructor
+     * @param _iServiceCore iService Core contract address
      */
-    constructor() public {
+    constructor(address _iServiceCore) public {
         owner = msg.sender;
+        iServiceCore = _iServiceCore;
     }
 
     /**
