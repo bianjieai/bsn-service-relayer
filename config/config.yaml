@@ -37,8 +37,8 @@ fabric:
 fisco:
     monitor_interval: 1 # chain monitoring interval in seconds
     connection_type: channel
-    ca_file: /Users/bianjie/BSN/bsnhub-service-relayer/key/ca.crt
-    cert_file: /Users/bianjie/BSN/bsnhub-service-relayer/key/sdk.crt
-    key_file: /Users/bianjie/BSN/bsnhub-service-relayer/key/sdk.key
-    sm_crypto: true
-    priv_key_file: /Users/bianjie/BSN/bsnhub-service-relayer/key/key.pem
+    ca_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/ca.crt
+    cert_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/sdk.crt
+    key_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/sdk.key
+    sm_crypto: false
+    priv_key_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/key.pem
