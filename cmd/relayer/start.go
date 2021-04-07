@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/spf13/cobra"
 
 	"relayer/appchains"
-	"relayer/appchains/fisco"
 	cfg "relayer/config"
 	"relayer/core"
 	"relayer/hub"
@@ -45,41 +45,40 @@ func StartCmd() *cobra.Command {
 			hubChain := hub.BuildIritaHubChain(hub.NewConfig(config))
 			relayerInstance := core.NewRelayer(appChainType, hubChain, appChainFactory, logging.Logger)
 
-			if appChainType=="fisco" {
-				fiscoBaseConfig, err := fisco.NewBaseConfig(config)
+			baseConfigFactory := appchains.NewBaseConfigFactory(config)
+			BaseConfig, err := baseConfigFactory.NewBaseConfig(appChainType)
+			if err != nil {
+				return err
+			}
+			baseConfigByte, _ := json.Marshal(BaseConfig)
+			appChainFactory.StoreBaseConfig(appChainType, baseConfigByte)
+			chainIDsbz, _ := store.Get([]byte("chainIDs"))
+			if chainIDsbz == nil {
+				chainIDsbz,err = json.Marshal(map[string]string{})
 				if err != nil {
 					return err
 				}
-				baseConfigByte, _ := json.Marshal(fiscoBaseConfig)
-				appChainFactory.StoreBaseConfig(appChainType, baseConfigByte)
-				chainIDsbz, _ := store.Get([]byte("chainIDs"))
-				if chainIDsbz == nil {
-					chainIDsbz,err = json.Marshal(map[string]string{})
-					if err != nil {
-						return err
-					}
-					store.Set([]byte("chainIDs"), chainIDsbz)
-				}else{
-					chainIDs:= map[string]string{}
-					json.Unmarshal(chainIDsbz, &chainIDs)
-					for chainID, chainType := range chainIDs{
-						if chainType == appChainType{
-							chainParams,err := store.Get(fisco.ChainParamsKey(chainID))
-							if err != nil {
-								return err
-							}
-							chain, err := relayerInstance.AppChainFactory.BuildAppChain(chainType, chainParams)
-							if err != nil {
-								return err
-							}
-
-							if err := chain.Start(relayerInstance.HandleInterchainRequest); err != nil {
-								return err
-							}
-
-							relayerInstance.AppChains[chainID] = chain
-							relayerInstance.AppChainStates[chainID] = true
+				store.Set([]byte("chainIDs"), chainIDsbz)
+			}else{
+				chainIDs:= map[string]string{}
+				json.Unmarshal(chainIDsbz, &chainIDs)
+				for chainID, chainType := range chainIDs{
+					if chainType == appChainType{
+						chainParams,err := store.Get([]byte(fmt.Sprintf("%s:params:%s", appChainType, chainID)))
+						if err != nil {
+							return err
 						}
+						chain, err := relayerInstance.AppChainFactory.BuildAppChain(chainType, chainParams)
+						if err != nil {
+							return err
+						}
+
+						if err := chain.Start(relayerInstance.HandleInterchainRequest); err != nil {
+							return err
+						}
+
+						relayerInstance.AppChains[chainID] = chain
+						relayerInstance.AppChainStates[chainID] = true
 					}
 				}
 			}
