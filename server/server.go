@@ -11,7 +11,7 @@ func StartWebServer(
 ) {
 	srv := NewHTTPService(chainManager, marketManager)
 
-	err := srv.Router.Run("8082")
+	err := srv.Router.Run(":8082")
 	if err != nil {
 		fmt.Println(err)
 	}

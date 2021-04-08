@@ -36,6 +36,9 @@ type BaseConfig struct {
 	MonitorInterval uint64
 }
 
+func (bc *BaseConfig) PrintConfig(){
+}
+
 // Config defines the specific chain config
 type Config struct {
 	BaseConfig

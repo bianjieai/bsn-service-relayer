@@ -1,5 +1,5 @@
 base:
-    app_chain_name: fisco # application chain name
+    app_chain_type: fisco # application chain type
     store_path: .db # store path
 
 # irita-hub config
@@ -35,7 +35,10 @@ fabric:
 
 # fisco config
 fisco:
-    config_file: ./appchains/fisco/config.toml
-    iservice_core_addr: 0xe9708c47b560ac923e5a9096669fc71e8bd771cb
-    iservice_market_addr: 0x55edef761e7d489b39db2d38250b2496725cd722
     monitor_interval: 1 # chain monitoring interval in seconds
+    connection_type: channel
+    ca_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/ca.crt
+    cert_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/sdk.crt
+    key_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/sdk.key
+    sm_crypto: false
+    priv_key_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/key.pem

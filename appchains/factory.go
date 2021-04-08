@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/viper"
+
 	"relayer/appchains/fisco"
 	// "relayer/appchains/ethereum"
 	"relayer/core"
+	"relayer/config"
 	"relayer/store"
 )
 
@@ -15,10 +18,22 @@ type AppChainFactory struct {
 	Store *store.Store // store
 }
 
+// AppChainFactory defines an application chain factory
+type BaseConfigFactory struct {
+	config *viper.Viper// store
+}
+
 // NewAppChainFactory constructs a new application chain factory
 func NewAppChainFactory(store *store.Store) *AppChainFactory {
 	return &AppChainFactory{
 		Store: store,
+	}
+}
+
+// NewAppChainFactory constructs a new application chain factory
+func NewBaseConfigFactory(v *viper.Viper) *BaseConfigFactory {
+	return &BaseConfigFactory{
+		config: v,
 	}
 }
 
@@ -70,5 +85,22 @@ func (f *AppChainFactory) StoreBaseConfig(chainType string, baseConfig []byte) e
 
 	default:
 		return fmt.Errorf("application chain %s not supported", chainType)
+	}
+}
+
+// StoreBaseConfig implements AppChainFactoryI
+func (bc *BaseConfigFactory) NewBaseConfig(chainType string) (config.BaseConfigI, error) {
+	switch strings.ToLower(chainType) {
+	case "eth":
+		return nil, nil
+
+	case "fabric":
+		return nil, nil
+
+	case "fisco":
+		return fisco.NewBaseConfig(bc.config)
+
+	default:
+		return nil, fmt.Errorf("application chain %s not supported", chainType)
 	}
 }

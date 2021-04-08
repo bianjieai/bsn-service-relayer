@@ -15,6 +15,10 @@ const (
 	DefaultStorePath = ".db"
 )
 
+type BaseConfigI interface {
+	PrintConfig()
+}
+
 // LoadYAMLConfig loads the YAML config file
 func LoadYAMLConfig(configFileName string) (*viper.Viper, error) {
 	v := viper.New()

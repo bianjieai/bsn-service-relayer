@@ -89,6 +89,11 @@ func NewFISCOChain(
 		return nil, err
 	}
 
+	err = fisco.storeChainID()
+	if err != nil {
+		return nil, err
+	}
+
 	store.GetInt64(HeightKey(chainID))
 
 	return fisco, nil
@@ -384,6 +389,21 @@ func (f *FISCOChain) storeChainParams() error {
 	}
 
 	return f.store.Set(ChainParamsKey(f.ChainID), bz)
+}
+
+func (f *FISCOChain) storeChainID() error {
+	chainIDsbz, err :=f.store.Get([]byte("chainIDs"))
+	if err != nil {
+		return err
+	}
+	chainIDs := map[string]string{}
+	err = json.Unmarshal(chainIDsbz, &chainIDs)
+	if err != nil {
+		return err
+	}
+	chainIDs[f.ChainID]= "fisco"
+	bz, err := json.Marshal(chainIDs)
+	return f.store.Set([]byte("chainIDs"), bz)
 }
 
 // updateHeight updates the height
