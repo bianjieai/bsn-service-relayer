@@ -18,8 +18,8 @@ import (
 	"relayer/appchains/fisco/iservice"
 	"relayer/common"
 	"relayer/core"
-	"relayer/indexer"
 	"relayer/logging"
+	"relayer/mysql"
 	"relayer/store"
 )
 
@@ -178,16 +178,14 @@ func (f *FISCOChain) SendResponse(requestID string, response core.ResponseI) err
 		return err
 	}
 
-	// TODO
-	indexer.OnInterchainRequestResponseSent()
+	mysql.OnInterchainRequestResponseSent()
 
 	err = f.waitForReceipt(tx, "SetResponse")
 	if err != nil {
 		return err
 	}
 
-	// TODO
-	indexer.OnInterchainRequestSucceeded()
+	mysql.OnInterchainRequestSucceeded()
 
 	return nil
 }
@@ -352,12 +350,12 @@ func (f *FISCOChain) parseInterchainEventsFromBlock(block CompactBlock) {
 			continue
 		}
 
-		f.parseServiceInvokedEvents(receipt)
+		f.parseServiceInvokedEvents(receipt, txHash)
 	}
 }
 
 // parseServiceInvokedEvents parses the ServiceInvoked events from the receipt
-func (f *FISCOChain) parseServiceInvokedEvents(receipt *types.Receipt) {
+func (f *FISCOChain) parseServiceInvokedEvents(receipt *types.Receipt, txHash string) {
 	for _, log := range receipt.Logs {
 		if log.Address != f.Config.IServiceCoreAddr {
 			continue
@@ -377,7 +375,7 @@ func (f *FISCOChain) parseServiceInvokedEvents(receipt *types.Receipt) {
 		}
 
 		request := f.buildInterchainRequest(&event)
-		f.handler(f.ChainID, request)
+		f.handler(f.ChainID, request, txHash)
 	}
 }
 
@@ -392,7 +390,7 @@ func (f *FISCOChain) storeChainParams() error {
 }
 
 func (f *FISCOChain) storeChainID() error {
-	chainIDsbz, err :=f.store.Get([]byte("chainIDs"))
+	chainIDsbz, err := f.store.Get([]byte("chainIDs"))
 	if err != nil {
 		return err
 	}
@@ -401,7 +399,7 @@ func (f *FISCOChain) storeChainID() error {
 	if err != nil {
 		return err
 	}
-	chainIDs[f.ChainID]= "fisco"
+	chainIDs[f.ChainID] = "fisco"
 	bz, err := json.Marshal(chainIDs)
 	return f.store.Set([]byte("chainIDs"), bz)
 }

@@ -7,6 +7,7 @@ require (
 	github.com/cockroachdb/pebble v0.0.0-20201118202804-75ede898b66c
 	github.com/ethereum/go-ethereum v1.9.18
 	github.com/gin-gonic/gin v1.4.0
+	github.com/go-sql-driver/mysql v1.4.0
 	github.com/irisnet/service-sdk-go v1.0.0
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/sirupsen/logrus v1.6.0

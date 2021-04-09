@@ -10,8 +10,8 @@ import (
 	"github.com/irisnet/service-sdk-go/types/store"
 
 	"relayer/core"
-	"relayer/indexer"
 	"relayer/logging"
+	"relayer/mysql"
 )
 
 // IritaHubChain defines the Irita-Hub chain
@@ -107,20 +107,19 @@ func (ic IritaHubChain) SendInterchainRequest(
 		return err
 	}
 
-	reqCtxID, _, err := ic.ServiceClient.InvokeService(invokeServiceReq, ic.BuildBaseTx())
+	reqCtxID, resTx, err := ic.ServiceClient.InvokeService(invokeServiceReq, ic.BuildBaseTx())
 	if err != nil {
 		return err
 	}
 
 	logging.Logger.Infof("request context created on %s: %s", ic.ChainID, reqCtxID)
 
-	// TODO
-	indexer.OnInterchainRequestSent()
-
 	requests, err := ic.ServiceClient.QueryRequestsByReqCtx(reqCtxID, 1)
 	if err != nil {
 		return err
 	}
+
+	mysql.OnInterchainRequestSent(requests[0].ID, resTx.Hash, ic.ChainID)
 
 	if len(requests) == 0 {
 		return fmt.Errorf("no service request initiated on %s", ic.ChainID)

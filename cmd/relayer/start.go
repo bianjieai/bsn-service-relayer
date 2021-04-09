@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/spf13/cobra"
 
 	"relayer/appchains"
@@ -10,6 +11,7 @@ import (
 	"relayer/core"
 	"relayer/hub"
 	"relayer/logging"
+	"relayer/mysql"
 	"relayer/server"
 	"relayer/store"
 )
@@ -54,17 +56,17 @@ func StartCmd() *cobra.Command {
 			appChainFactory.StoreBaseConfig(appChainType, baseConfigByte)
 			chainIDsbz, _ := store.Get([]byte("chainIDs"))
 			if chainIDsbz == nil {
-				chainIDsbz,err = json.Marshal(map[string]string{})
+				chainIDsbz, err = json.Marshal(map[string]string{})
 				if err != nil {
 					return err
 				}
 				store.Set([]byte("chainIDs"), chainIDsbz)
-			}else{
-				chainIDs:= map[string]string{}
+			} else {
+				chainIDs := map[string]string{}
 				json.Unmarshal(chainIDsbz, &chainIDs)
-				for chainID, chainType := range chainIDs{
-					if chainType == appChainType{
-						chainParams,err := store.Get([]byte(fmt.Sprintf("%s:params:%s", appChainType, chainID)))
+				for chainID, chainType := range chainIDs {
+					if chainType == appChainType {
+						chainParams, err := store.Get([]byte(fmt.Sprintf("%s:params:%s", appChainType, chainID)))
 						if err != nil {
 							return err
 						}
@@ -86,6 +88,10 @@ func StartCmd() *cobra.Command {
 			marketManger := server.NewMarketManager(relayerInstance)
 
 			server.StartWebServer(chainManager, marketManger)
+
+			mysqlConfig := mysql.NewConfig(config)
+			mysql.NewDB(mysqlConfig)
+			defer mysql.DB.Close()
 
 			return nil
 		},
