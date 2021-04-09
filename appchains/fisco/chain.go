@@ -215,6 +215,9 @@ func (f *FISCOChain) UpdateServiceBinding(serviceName, provider, serviceFee stri
 
 // GetServiceBinding implements AppChainI
 func (f *FISCOChain) GetServiceBinding(serviceName string) (core.ServiceBindingI, error) {
+	count, err := f.IServiceMarketSession.GetServiceBindingCount()
+	_ = count
+	_ = err
 	serviceName, schemas, provider, serviceFee, qos, err := f.IServiceMarketSession.GetServiceBinding(serviceName)
 	if err != nil {
 		return nil, err
