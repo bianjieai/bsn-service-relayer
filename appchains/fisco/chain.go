@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"strings"
@@ -214,17 +215,20 @@ func (f *FISCOChain) UpdateServiceBinding(serviceName, provider, serviceFee stri
 
 // GetServiceBinding implements AppChainI
 func (f *FISCOChain) GetServiceBinding(serviceName string) (core.ServiceBindingI, error) {
-	serviceBinding, err := f.IServiceMarketSession.GetServiceBinding(serviceName)
+	serviceName, schemas, provider, serviceFee, qos, err := f.IServiceMarketSession.GetServiceBinding(serviceName)
 	if err != nil {
 		return nil, err
 	}
+	if len(serviceName) == 0 {
+		return nil, errors.New("service does not exist")
+	}
 
 	return iservice.ServiceBinding{
-		ServiceName: serviceBinding.ServiceName,
-		Schemas:     serviceBinding.Schemas,
-		Provider:    serviceBinding.Provider,
-		ServiceFee:  serviceBinding.ServiceFee,
-		QoS:         serviceBinding.Qos,
+		ServiceName: serviceName,
+		Schemas:     schemas,
+		Provider:    provider,
+		ServiceFee:  serviceFee,
+		QoS:         qos,
 	}, nil
 }
 
@@ -392,7 +396,7 @@ func (f *FISCOChain) storeChainParams() error {
 }
 
 func (f *FISCOChain) storeChainID() error {
-	chainIDsbz, err :=f.store.Get([]byte("chainIDs"))
+	chainIDsbz, err := f.store.Get([]byte("chainIDs"))
 	if err != nil {
 		return err
 	}
@@ -401,7 +405,7 @@ func (f *FISCOChain) storeChainID() error {
 	if err != nil {
 		return err
 	}
-	chainIDs[f.ChainID]= "fisco"
+	chainIDs[f.ChainID] = "fisco"
 	bz, err := json.Marshal(chainIDs)
 	return f.store.Set([]byte("chainIDs"), bz)
 }
