@@ -8,10 +8,10 @@ import "./vendor/Ownable.sol";
  */
 contract iServiceMarketEx is Ownable {
     // service binding list
-    ServiceBinding[] bindings;
+    ServiceBinding[] public bindings;
 
     // mapping the service name to index
-    mapping(string => ServiceBindingIndex) bindingIndices;
+    mapping(string => ServiceBindingIndex) public bindingIndices;
 
     // service binding
     struct ServiceBinding {
@@ -62,18 +62,13 @@ contract iServiceMarketEx is Ownable {
      * @dev Event triggered when the service binding is removed
      * @param _serviceName Service name
      */
-    event ServiceBindingRemoved(
-        string indexed _serviceName
-    );
+    event ServiceBindingRemoved(string indexed _serviceName);
 
     /**
      * @dev Constructor
      */
-    constructor()
-        public
-        Ownable()
-    {
-       // no-op
+    constructor() public Ownable() {
+        // no-op
     }
 
     /**
@@ -90,14 +85,25 @@ contract iServiceMarketEx is Ownable {
         string memory _provider,
         string memory _serviceFee,
         uint256 _qos
-    )
-    {
-        require(bytes(_serviceName).length > 0, "iServiceMarketEx: service name can not be empty");
-        require(bytes(_schemas).length > 0, "iServiceMarketEx: service schemas can not be empty");
-        require(bytes(_provider).length > 0, "iServiceMarketEx: service provider can not be empty");
-        require(bytes(_serviceFee).length > 0, "iServiceMarketEx: service fee can not be empty");
+    ) {
+        require(
+            bytes(_serviceName).length > 0,
+            "iServiceMarketEx: service name can not be empty"
+        );
+        require(
+            bytes(_schemas).length > 0,
+            "iServiceMarketEx: service schemas can not be empty"
+        );
+        require(
+            bytes(_provider).length > 0,
+            "iServiceMarketEx: service provider can not be empty"
+        );
+        require(
+            bytes(_serviceFee).length > 0,
+            "iServiceMarketEx: service fee can not be empty"
+        );
         require(_qos > 0, "iServiceMarketEx: qos should be greater than 0");
-        
+
         _;
     }
 
@@ -106,7 +112,10 @@ contract iServiceMarketEx is Ownable {
      * @param _serviceName Service name
      */
     modifier bindingDoesNotExist(string memory _serviceName) {
-        require(!bindingIndices[_serviceName].exist, "iServiceMarketEx: service binding already exists");
+        require(
+            !bindingIndices[_serviceName].exist,
+            "iServiceMarketEx: service binding already exists"
+        );
         _;
     }
 
@@ -115,7 +124,10 @@ contract iServiceMarketEx is Ownable {
      * @param _serviceName Service name
      */
     modifier bindingExists(string memory _serviceName) {
-        require(bindingIndices[_serviceName].exist, "iServiceMarketEx: service binding does not exist");
+        require(
+            bindingIndices[_serviceName].exist,
+            "iServiceMarketEx: service binding does not exist"
+        );
         _;
     }
 
@@ -146,7 +158,7 @@ contract iServiceMarketEx is Ownable {
         binding.provider = _provider;
         binding.serviceFee = _serviceFee;
         binding.qos = _qos;
-        
+
         _addServiceBinding(binding);
     }
 
@@ -162,21 +174,18 @@ contract iServiceMarketEx is Ownable {
         string calldata _provider,
         string calldata _serviceFee,
         uint256 _qos
-    )
-        external
-        onlyOwner
-        bindingExists(_serviceName)
-    {
-        ServiceBinding storage binding = bindings[bindingIndices[_serviceName].index];
-        
+    ) external onlyOwner bindingExists(_serviceName) {
+        ServiceBinding storage binding =
+            bindings[bindingIndices[_serviceName].index];
+
         if (bytes(_provider).length > 0) {
             binding.provider = _provider;
         }
-        
+
         if (bytes(_serviceFee).length > 0) {
             binding.serviceFee = _serviceFee;
         }
-        
+
         if (_qos > 0) {
             binding.qos = _qos;
         }
@@ -188,9 +197,7 @@ contract iServiceMarketEx is Ownable {
      * @dev Remove the specified service binding
      * @param _serviceName Service name
      */
-    function removeServiceBinding(
-        string calldata _serviceName
-    )
+    function removeServiceBinding(string calldata _serviceName)
         external
         onlyOwner
         bindingExists(_serviceName)
@@ -206,9 +213,7 @@ contract iServiceMarketEx is Ownable {
      * @param _serviceName Service name
      * @return exist Indicates if the service binding exists
      */
-    function serviceBindingExists(
-        string memory _serviceName
-    ) 
+    function serviceBindingExists(string memory _serviceName)
         public
         view
         returns (bool exist)
@@ -221,51 +226,39 @@ contract iServiceMarketEx is Ownable {
      * @param _serviceName Service name
      * @return binding Service binding
      */
-    function getServiceBinding(
-        string memory _serviceName
-    )
+    function getServiceBinding(string memory _serviceName)
         public
         view
-        returns (ServiceBinding memory binding)
+        returns (
+            string memory,
+            string memory,
+            string memory,
+            string memory,
+            uint256
+        )
     {
         ServiceBindingIndex memory sbi = bindingIndices[_serviceName];
-
+        ServiceBinding storage binding;
         if (sbi.exist) {
-            return bindings[sbi.index];
+            binding = bindings[sbi.index];
+            return (
+                binding.serviceName,
+                binding.schemas,
+                binding.provider,
+                binding.serviceFee,
+                binding.qos
+            );
+        } else {
+            return ("", "", "", "", 0);
         }
-
-        return binding;
     }
 
     /**
      * @dev Query the total number of the service bindings
      * @return count Total number of the service bindings
      */
-    function getServiceBindingCount()
-        public
-        view
-        returns (uint256 count)
-    {
+    function getServiceBindingCount() public view returns (uint256 count) {
         return bindings.length;
-    }
-
-    /**
-     * @dev Retrieve the specified service binding by index
-     * @param _index Index of the service binding
-     * @return binding Service binding
-     */
-    function getServiceBindingByIndex(
-        uint256 _index
-    )
-        public
-        view
-        returns (ServiceBinding memory binding)
-    {
-        if (_index < bindings.length) {
-            return bindings[_index];
-        }
-
-        return binding;
     }
 
     /**
@@ -273,9 +266,7 @@ contract iServiceMarketEx is Ownable {
      * @param _serviceName Service name
      * @return provider Service provider
      */
-    function getServiceProvider(
-        string memory _serviceName
-    )
+    function getServiceProvider(string memory _serviceName)
         public
         view
         returns (string memory provider)
@@ -294,9 +285,7 @@ contract iServiceMarketEx is Ownable {
      * @param _serviceName Service name
      * @return fee Service fee
      */
-    function getServiceFee(
-        string memory _serviceName
-    )
+    function getServiceFee(string memory _serviceName)
         public
         view
         returns (string memory fee)
@@ -315,9 +304,7 @@ contract iServiceMarketEx is Ownable {
      * @param _serviceName Service name
      * @return qos Service quality
      */
-    function getQoS(
-        string memory _serviceName
-    )
+    function getQoS(string memory _serviceName)
         public
         view
         returns (uint256 qos)
@@ -330,21 +317,23 @@ contract iServiceMarketEx is Ownable {
 
         return qos;
     }
-    
+
     /**
      * @notice Add the service binding internally
      * @param _binding Service binding to be added
      */
-    function _addServiceBinding(
-        ServiceBinding memory _binding
-    )
-        internal
-    {
+    function _addServiceBinding(ServiceBinding memory _binding) internal {
         bindingIndices[_binding.serviceName].index = bindings.length;
         bindingIndices[_binding.serviceName].exist = true;
-        
+
         bindings.push(_binding);
 
-        emit ServiceBindingAdded(_binding.serviceName, _binding.schemas, _binding.provider, _binding.serviceFee, _binding.qos);
+        emit ServiceBindingAdded(
+            _binding.serviceName,
+            _binding.schemas,
+            _binding.provider,
+            _binding.serviceFee,
+            _binding.qos
+        );
     }
 }
