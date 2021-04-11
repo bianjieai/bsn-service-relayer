@@ -363,7 +363,7 @@ func (f *FISCOChain) parseInterchainEventsFromBlock(block CompactBlock) {
 // parseServiceInvokedEvents parses the ServiceInvoked events from the receipt
 func (f *FISCOChain) parseServiceInvokedEvents(receipt *types.Receipt) {
 	for _, log := range receipt.Logs {
-		if log.Address != f.Config.IServiceCoreAddr {
+		if !strings.EqualFold(log.Address, f.Config.IServiceCoreAddr) {
 			continue
 		}
 
