@@ -4,12 +4,12 @@ base:
 
 # irita-hub config
 hub:
-    chain_id: irita-hub
+    chain_id: irita
     node_rpc_addr: http://127.0.0.1:26657
     node_grpc_addr: 127.0.0.1:9090
     key_path: .keys
-    key_name: relayer
-    passphrase: 12345678
+    key_name: node0
+    passphrase: 1234567890
 
 # ethereum config
 eth:
@@ -37,8 +37,8 @@ fabric:
 fisco:
     monitor_interval: 1 # chain monitoring interval in seconds
     connection_type: channel
-    ca_file: /Users/vincent/github.com/bianjieai/bsnhub-service-relayer/bsn-key/ca.crt
-    cert_file: /Users/vincent/github.com/bianjieai/bsnhub-service-relayer/bsn-key/sdk.crt
-    key_file: /Users/vincent/github.com/bianjieai/bsnhub-service-relayer/bsn-key/sdk.key
+    ca_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/ca.crt
+    cert_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/sdk.crt
+    key_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/sdk.key
     sm_crypto: true
-    priv_key_file: /Users/vincent/github.com/bianjieai/bsnhub-service-relayer/bsn-key/key.pem
+    priv_key_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/key.pem
