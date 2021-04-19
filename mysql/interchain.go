@@ -32,8 +32,14 @@ func OnInterchainRequestReceived(requestID, fromChainID, fromTx string) {
 }
 
 // OnInterchainRequestSent is the hook which is called when the interchain request is sent to hub
-func OnInterchainRequestSent(requestID, hubReqTx string) {
+func OnInterchainRequestSent(requestID, icResID, hubReqTx string) {
 	err := update("hub_req_tx", hubReqTx, requestID)
+	if err != nil {
+		logging.Logger.Errorf(err.Error())
+		return
+	}
+
+	err = update("ic_request_id", icResID, requestID)
 	if err != nil {
 		logging.Logger.Errorf(err.Error())
 		return
@@ -63,6 +69,14 @@ func OnInterchainRequestSucceeded(requestID string) {
 	}
 
 	err = updateTime("tx_time", requestID)
+	if err != nil {
+		logging.Logger.Errorf(err.Error())
+		return
+	}
+}
+
+func TxErrCollection(requestID, errStr string){
+	err := update("error", errStr, requestID)
 	if err != nil {
 		logging.Logger.Errorf(err.Error())
 		return
