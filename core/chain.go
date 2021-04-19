@@ -96,7 +96,7 @@ type ServiceBindingI interface {
 }
 
 // InterchainRequestHandler defines the interchain request handler interface
-type InterchainRequestHandler func(chainID string, request InterchainRequest) error
+type InterchainRequestHandler func(chainID string, request InterchainRequest, txHash string) error
 
 // ResponseCallback defines the response callback interface
 type ResponseCallback func(icRequestID string, response ResponseI)

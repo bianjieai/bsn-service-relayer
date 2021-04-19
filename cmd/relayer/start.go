@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/spf13/cobra"
-
 	"relayer/appchains"
 	cfg "relayer/config"
 	"relayer/core"
 	"relayer/hub"
 	"relayer/logging"
+	"relayer/mysql"
 	"relayer/server"
 	"relayer/store"
 )
@@ -82,6 +82,10 @@ func StartCmd() *cobra.Command {
 					}
 				}
 			}
+			mysqlConfig := mysql.NewConfig(config)
+			mysql.NewDB(mysqlConfig)
+			defer mysql.DB.Close()
+
 			chainManager := server.NewChainManager(relayerInstance)
 			marketManger := server.NewMarketManager(relayerInstance)
 

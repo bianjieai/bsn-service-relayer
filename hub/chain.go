@@ -11,7 +11,7 @@ import (
 	"github.com/irisnet/service-sdk-go/types/store"
 
 	"relayer/core"
-	"relayer/indexer"
+	"relayer/mysql"
 	"relayer/logging"
 )
 
@@ -108,7 +108,7 @@ func (ic IritaHubChain) SendInterchainRequest(
 		return err
 	}
 
-	reqCtxID, _, err := ic.ServiceClient.InvokeService(invokeServiceReq, ic.BuildBaseTx())
+	reqCtxID, resTx, err := ic.ServiceClient.InvokeService(invokeServiceReq, ic.BuildBaseTx())
 	if err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func (ic IritaHubChain) SendInterchainRequest(
 	logging.Logger.Infof("request context created on %s: %s", ic.ChainID, reqCtxID)
 
 	// TODO
-	indexer.OnInterchainRequestSent()
+	mysql.OnInterchainRequestSent(request.ID, resTx.Hash)
 
 	requests, err := ic.ServiceClient.QueryRequestsByReqCtx(reqCtxID, 1)
 	if err != nil {
@@ -185,9 +185,10 @@ func (ic IritaHubChain) ResponseListener(reqCtxID string, requestID string, cb c
 		return nil
 	}
 
-	callbackWrapper := func(reqCtxID, requestID, response string) {
+	callbackWrapper := func(reqCtxID, requestID, result string, response string) {
 		resp := core.ResponseAdaptor{
 			StatusCode:  200,
+			Result:      result,
 			Output:      response,
 			ICRequestID: requestID,
 		}
