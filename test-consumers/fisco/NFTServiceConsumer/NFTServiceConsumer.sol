@@ -156,7 +156,7 @@ contract NFTServiceConsumer is iServiceClient {
     string private priceRequestInput = '{"header":{},"body":{"pair":"usdt-eth"}}'; // price request input
 
     // nft service variables
-    string private nftServiceName = "nft"; // nft service name
+    string private nftServiceName = "fisco-contract-call"; // nft service name
     address private to;
     uint256 private amount;
     string private metaID;

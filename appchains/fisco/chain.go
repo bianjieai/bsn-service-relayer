@@ -19,7 +19,7 @@ import (
 	"relayer/appchains/fisco/iservice"
 	"relayer/common"
 	"relayer/core"
-	"relayer/indexer"
+	"relayer/mysql"
 	"relayer/logging"
 	"relayer/store"
 )
@@ -180,7 +180,7 @@ func (f *FISCOChain) SendResponse(requestID string, response core.ResponseI) err
 	}
 
 	// TODO
-	indexer.OnInterchainRequestResponseSent()
+	mysql.OnInterchainRequestResponseSent(requestID, tx.Hash().Hex())
 
 	err = f.waitForReceipt(tx, "SetResponse")
 	if err != nil {
@@ -188,7 +188,7 @@ func (f *FISCOChain) SendResponse(requestID string, response core.ResponseI) err
 	}
 
 	// TODO
-	indexer.OnInterchainRequestSucceeded()
+	mysql.OnInterchainRequestSucceeded(requestID)
 
 	return nil
 }
@@ -381,7 +381,7 @@ func (f *FISCOChain) parseServiceInvokedEvents(receipt *types.Receipt) {
 		}
 
 		request := f.buildInterchainRequest(&event)
-		f.handler(f.ChainID, request)
+		f.handler(f.ChainID, request, receipt.TransactionHash)
 	}
 }
 
