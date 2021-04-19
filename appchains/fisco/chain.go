@@ -176,6 +176,7 @@ func (f *FISCOChain) SendResponse(requestID string, response core.ResponseI) err
 
 	tx, _, err := f.IServiceCoreSession.SetResponse(requestID32Bytes, response.GetErrMsg(), response.GetOutput(), response.GetInterchainRequestID())
 	if err != nil {
+		mysql.TxErrCollection(requestID, err.Error())
 		return err
 	}
 

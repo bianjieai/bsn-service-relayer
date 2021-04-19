@@ -110,13 +110,11 @@ func (ic IritaHubChain) SendInterchainRequest(
 
 	reqCtxID, resTx, err := ic.ServiceClient.InvokeService(invokeServiceReq, ic.BuildBaseTx())
 	if err != nil {
+		mysql.TxErrCollection(request.ID, err.Error())
 		return err
 	}
 
 	logging.Logger.Infof("request context created on %s: %s", ic.ChainID, reqCtxID)
-
-	// TODO
-	mysql.OnInterchainRequestSent(request.ID, resTx.Hash)
 
 	requests, err := ic.ServiceClient.QueryRequestsByReqCtx(reqCtxID, 1)
 	if err != nil {
@@ -126,6 +124,9 @@ func (ic IritaHubChain) SendInterchainRequest(
 	if len(requests) == 0 {
 		return fmt.Errorf("no service request initiated on %s", ic.ChainID)
 	}
+
+	// TODO
+	mysql.OnInterchainRequestSent(request.ID, requests[0].ID, resTx.Hash)
 
 	logging.Logger.Infof("service request initiated on %s: %s", ic.ChainID, requests[0].ID)
 
