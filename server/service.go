@@ -21,6 +21,10 @@ func (cm *ChainManager) AddChain(params []byte) (chainID string, err error) {
 	return cm.relayer.AddChain(params)
 }
 
+// DeleteChain delete a app chain for the relayer
+func (cm *ChainManager) DeleteChain(chainID string) error {
+	return cm.relayer.DeleteChain(chainID)
+}
 // StartChain starts to relay an existent app chain
 func (cm *ChainManager) StartChain(chainID string) error {
 	return cm.relayer.StartChain(chainID)

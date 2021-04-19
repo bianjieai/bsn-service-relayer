@@ -17,10 +17,24 @@ type AddChainResult struct {
 	ChainID string `json:"chain_id"`
 }
 
+type AddChainAndBindServResult struct {
+	ChainID string `json:"chain_id"`
+	ServiceName string `json:"service_name"`
+}
 // ChainStatus defines the chain status
 type ChainStatus struct {
 	State  bool  `json:"state"`
 	Height int64 `json:"height,omitempty"`
+}
+
+type AddChainAndBindServRequest struct {
+	ChainParams string `json:"chain_params"`
+	ServParamsPath string  `json:"serv_params_path,omitempty"`
+	ServiceName string `json:"service_name,omitempty"`
+	Schemas     string `json:"schemas,omitempty"`
+	Provider    string `json:"provider,omitempty"`
+	ServiceFee  string `json:"service_fee,omitempty"`
+	QoS         uint64 `json:"qos,omitempty"`
 }
 
 // AddServiceBindingRequest defines the request to add a service binding

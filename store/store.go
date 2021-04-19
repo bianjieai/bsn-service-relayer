@@ -57,3 +57,14 @@ func (s *Store) GetInt64(key []byte) (int64, error) {
 
 	return int64(binary.LittleEndian.Uint64(value)), nil
 }
+
+
+// Get retrieves the value of the given key
+func (s *Store) Delete(key []byte) error {
+	err := s.db.Delete(key, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
