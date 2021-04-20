@@ -1,4 +1,4 @@
-pragma solidity ^0.6.10;
+pragma solidity ^0.4.24;
 
 /**
  * @title iService interface
@@ -14,8 +14,8 @@ interface iServiceInterface {
      * @return requestID Request id
      */
     function callService(
-        string calldata _serviceName,
-        string calldata _input,
+        string  _serviceName,
+        string  _input,
         uint256 _timeout,
         address _callbackAddress,
         bytes4 _callbackFunction
@@ -31,8 +31,8 @@ interface iServiceInterface {
      */
     function setResponse(
         bytes32 _requestID,
-        string calldata _errMsg,
-        string calldata _output,
-        string calldata _icRequestID
+        string  _errMsg,
+        string  _output,
+        string  _icRequestID
     ) external returns (bool);
 }

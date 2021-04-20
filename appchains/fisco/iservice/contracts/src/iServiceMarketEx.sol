@@ -1,5 +1,4 @@
-pragma solidity ^0.6.10;
-pragma experimental "ABIEncoderV2";
+pragma solidity ^0.4.24;
 
 import "./vendor/Ownable.sol";
 
@@ -8,10 +7,10 @@ import "./vendor/Ownable.sol";
  */
 contract iServiceMarketEx is Ownable {
     // service binding list
-    ServiceBinding[] public bindings;
+    ServiceBinding[] bindings;
 
     // mapping the service name to index
-    mapping(string => ServiceBindingIndex) public bindingIndices;
+    mapping(string => ServiceBindingIndex) bindingIndices;
 
     // service binding
     struct ServiceBinding {
@@ -140,10 +139,10 @@ contract iServiceMarketEx is Ownable {
      * @param _qos Service quality of the binding
      */
     function addServiceBinding(
-        string calldata _serviceName,
-        string calldata _schemas,
-        string calldata _provider,
-        string calldata _serviceFee,
+        string _serviceName,
+        string _schemas,
+        string _provider,
+        string _serviceFee,
         uint256 _qos
     )
         external
@@ -170,9 +169,9 @@ contract iServiceMarketEx is Ownable {
      * @param _qos Service quality of the binding, not updated if set to zero
      */
     function updateServiceBinding(
-        string calldata _serviceName,
-        string calldata _provider,
-        string calldata _serviceFee,
+        string _serviceName,
+        string _provider,
+        string _serviceFee,
         uint256 _qos
     ) external onlyOwner bindingExists(_serviceName) {
         ServiceBinding storage binding =
@@ -197,7 +196,7 @@ contract iServiceMarketEx is Ownable {
      * @dev Remove the specified service binding
      * @param _serviceName Service name
      */
-    function removeServiceBinding(string calldata _serviceName)
+    function removeServiceBinding(string _serviceName)
         external
         onlyOwner
         bindingExists(_serviceName)
@@ -238,9 +237,8 @@ contract iServiceMarketEx is Ownable {
         )
     {
         ServiceBindingIndex memory sbi = bindingIndices[_serviceName];
-        ServiceBinding storage binding;
         if (sbi.exist) {
-            binding = bindings[sbi.index];
+            ServiceBinding storage binding = bindings[sbi.index];
             return (
                 binding.serviceName,
                 binding.schemas,
