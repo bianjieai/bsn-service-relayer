@@ -17,7 +17,7 @@ type CompactBlock struct {
 
 // ChainParams defines the params for the specific chain
 type ChainParams struct {
-	NodeURL            string `json:"node_url"`
+	NodeURLs           map[string]string `json:"node_urls"`
 	GroupID            int    `json:"group_id"`
 	ChainID            int64  `json:"chain_id"`
 	IServiceCoreAddr   string `json:"iservice_core_addr"`

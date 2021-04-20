@@ -3,6 +3,7 @@ package fisco
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -96,6 +97,18 @@ func NewConfig(baseConfig BaseConfig, chainParams ChainParams) *Config {
 	}
 }
 
+//randURL returns a rand URL
+func randURL(m map[string]string) string {
+	r := rand.Intn(len(m))
+	for _,v := range m {
+		if r == 0 {
+			return v
+		}
+		r--
+	}
+	return ""
+}
+
 // BuildClientConfig builds the FISCO client config from the given Config
 func BuildClientConfig(config Config) *conf.Config {
 	return &conf.Config{
@@ -107,7 +120,7 @@ func BuildClientConfig(config Config) *conf.Config {
 		IsSMCrypto: config.IsSMCrypto,
 		GroupID:    config.GroupID,
 		ChainID:    config.ChainID,
-		NodeURL:    config.NodeURL,
+		NodeURL:    randURL(config.NodeURLs),
 	}
 }
 

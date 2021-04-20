@@ -43,6 +43,9 @@ type AppChainFactoryI interface {
 
 	// store the base config by the given app chain type
 	StoreBaseConfig(chainType string, baseConfig []byte) error
+
+	// delete the chain config by the given chain id
+	DeleteChainConfig(chainType string, chainID string) error
 }
 
 // InterchainRequest defines the interchain service request

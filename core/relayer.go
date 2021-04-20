@@ -62,6 +62,31 @@ func (r *Relayer) AddChain(appChainParams []byte) (chainID string, err error) {
 	return chainID, nil
 }
 
+// DeleteChain delete a app chain for the relayer
+func (r *Relayer) DeleteChain(chainID string) error {
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+
+	state, ok := r.AppChainStates[chainID]
+	if !ok {
+		return fmt.Errorf("chain ID %s does not exist", chainID)
+	}
+
+	if !state {
+		return fmt.Errorf("chain ID %s is not running", chainID)
+	}
+
+	chain := r.AppChains[chainID]
+	if err := chain.Stop(); err != nil {
+		return err
+	}
+	delete(r.AppChains, chainID)
+	delete(r.AppChainStates, chainID)
+	r.AppChainFactory.DeleteChainConfig(r.AppChainType, chainID)
+
+	return nil
+}
+
 // StartChain starts the specified app chain
 func (r *Relayer) StartChain(chainID string) error {
 	r.mtx.Lock()
