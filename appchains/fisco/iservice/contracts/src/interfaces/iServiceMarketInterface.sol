@@ -1,4 +1,4 @@
-pragma solidity ^0.6.10;
+pragma solidity ^0.4.24;
 
 /**
  * @title iService market interface for query the service binding by iService Core
@@ -10,7 +10,7 @@ interface iServiceMarketInterface {
      * @return exist Indicates if the service binding exists
      */
     function serviceBindingExists(
-        string calldata _serviceName
+        string _serviceName
     ) external view returns (bool exist);
 
     /**
@@ -19,7 +19,7 @@ interface iServiceMarketInterface {
      * @return provider Service provider
      */
     function getServiceProvider(
-        string calldata _serviceName
+        string  _serviceName
     ) external view returns (string memory provider);
 
     /**
@@ -28,7 +28,7 @@ interface iServiceMarketInterface {
      * @return fee Service fee
      */
     function getServiceFee(
-        string calldata _serviceName
+        string  _serviceName
     ) external view returns (string memory fee);
 
     /**
@@ -37,6 +37,6 @@ interface iServiceMarketInterface {
      * @return qos Service quality
      */
     function getQoS(
-        string calldata _serviceName
+        string  _serviceName
     ) external view returns (uint256 qos);
 }
