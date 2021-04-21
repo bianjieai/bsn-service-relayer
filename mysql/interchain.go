@@ -12,6 +12,12 @@ func OnInterchainRequestReceived(requestID, fromChainID, fromTx string) {
 		return
 	}
 
+	err = update("tx_status", "0", requestID)
+	if err != nil {
+		logging.Logger.Errorf(err.Error())
+		return
+	}
+
 	err = update("from_chainid", fromChainID, requestID)
 	if err != nil {
 		logging.Logger.Errorf(err.Error())
@@ -77,6 +83,11 @@ func OnInterchainRequestSucceeded(requestID string) {
 
 func TxErrCollection(requestID, errStr string){
 	err := update("error", errStr, requestID)
+	if err != nil {
+		logging.Logger.Errorf(err.Error())
+		return
+	}
+	err = update("tx_status", "2", requestID)
 	if err != nil {
 		logging.Logger.Errorf(err.Error())
 		return
