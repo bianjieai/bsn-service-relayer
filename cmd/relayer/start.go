@@ -84,7 +84,7 @@ func StartCmd() *cobra.Command {
 			}
 			mysqlConfig := mysql.NewConfig(config)
 			mysql.NewDB(mysqlConfig)
-			defer mysql.DB.Close()
+			defer mysql.Close()
 
 			chainManager := server.NewChainManager(relayerInstance)
 			marketManger := server.NewMarketManager(relayerInstance)
