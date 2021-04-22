@@ -1,11 +1,8 @@
 package server
 
 import (
-	"net/http"
-	"relayer/config"
-
 	"github.com/gin-gonic/gin"
-
+	"net/http"
 	"relayer/logging"
 )
 
@@ -40,7 +37,6 @@ func (srv *HTTPService) createRouter() {
 	r := gin.Default()
 
 	r.POST("/chains", srv.AddChain)
-	r.POST("/chainsandbindings", srv.AddChainAndBindServ)
 	r.POST("/chains/:chainid/update", srv.UpdateChain)
 	r.POST("/chains/:chainid/delete", srv.DeleteChain)
 	r.POST("/chains/:chainid/start", srv.StartChain)
@@ -115,45 +111,6 @@ func (srv *HTTPService) UpdateChain(c *gin.Context) {
 	}
 
 	onSuccess(c, AddChainResult{ChainID: chainID})
-}
-
-func (srv *HTTPService) AddChainAndBindServ(c *gin.Context) {
-	var req AddChainAndBindServRequest
-	if err := c.BindJSON(&req); err != nil {
-		onError(c, http.StatusBadRequest, "invalid JSON payload")
-		return
-	}
-
-	chainID, err := srv.ChainManager.AddChain([]byte(req.ChainParams))
-	if err != nil {
-		onError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	if len(req.ServParamsPath) > 0 {
-		servServParamsCfg, err := config.LoadYAMLConfig(req.ServParamsPath)
-		if err == nil {
-			req.ServiceName = servServParamsCfg.GetString("service.service_name")
-			req.Schemas = servServParamsCfg.GetString("service.schemas")
-			req.Provider = servServParamsCfg.GetString("service.provider")
-			req.ServiceFee = servServParamsCfg.GetString("service.service_fee")
-			req.QoS = servServParamsCfg.GetUint64("service.qos")
-		}
-	}
-
-	err = srv.MarketManager.AddServiceBinding(chainID, AddServiceBindingRequest{
-		ServiceName: req.ServiceName,
-		Schemas:     req.Schemas,
-		Provider:    req.Provider,
-		ServiceFee:  req.ServiceFee,
-		QoS:         req.QoS,
-	})
-	if err != nil {
-		onError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	onSuccess(c, AddChainAndBindServResult{ChainID: chainID, ServiceName: req.ServiceName})
 }
 
 func (srv *HTTPService) StartChain(c *gin.Context) {

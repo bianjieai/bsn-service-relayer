@@ -50,3 +50,11 @@ mysql:
     db_user_passphrase: 123456
     host: localhost
     port: 3306
+
+# service config
+service:
+    service_name: fisco-contract-call
+    schemas: wddrdrtg
+    provider: iaa1lmkcxe933q2msc6x83x5c238h85z06kacaezef
+    service_fee: 1000000upoint
+    qos: 100
