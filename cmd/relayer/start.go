@@ -11,6 +11,7 @@ import (
 	"relayer/logging"
 	"relayer/mysql"
 	"relayer/server"
+	"relayer/service"
 	"relayer/store"
 )
 
@@ -43,7 +44,9 @@ func StartCmd() *cobra.Command {
 
 			appChainFactory := appchains.NewAppChainFactory(store)
 			hubChain := hub.BuildIritaHubChain(hub.NewConfig(config))
-			relayerInstance := core.NewRelayer(appChainType, hubChain, appChainFactory, logging.Logger)
+
+			serviceBindInfo :=  service.NewServiceBindInfo(config)
+			relayerInstance := core.NewRelayer(appChainType, hubChain, appChainFactory, logging.Logger, serviceBindInfo)
 
 			baseConfigFactory := appchains.NewBaseConfigFactory(config)
 			BaseConfig, err := baseConfigFactory.NewBaseConfig(appChainType)
