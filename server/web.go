@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/gin-gonic/gin"
+	"io/ioutil"
 	"net/http"
 	"relayer/logging"
 )
@@ -36,17 +37,24 @@ func (srv *HTTPService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (srv *HTTPService) createRouter() {
 	r := gin.Default()
 
-	r.POST("/chains", srv.AddChain)
-	r.POST("/chains/:chainid/update", srv.UpdateChain)
-	r.POST("/chains/:chainid/delete", srv.DeleteChain)
-	r.POST("/chains/:chainid/start", srv.StartChain)
-	r.POST("/chains/:chainid/stop", srv.StopChain)
-	r.GET("/chains", srv.GetChains)
-	r.GET("/chains/:chainid/status", srv.GetChainStatus)
+	api := r.Group("/api/v0")
+	fiscobcos := api.Group("/fiscobcos")
+	{
+		fiscobcos.POST("/chains", srv.AddChain)
+		fiscobcos.POST("/chains/:chainid/update", srv.UpdateChain)
+		fiscobcos.POST("/chains/:chainid/delete", srv.DeleteChain)
+		fiscobcos.POST("/chains/:chainid/start", srv.StartChain)
+		fiscobcos.POST("/chains/:chainid/stop", srv.StopChain)
+		fiscobcos.GET("/chains", srv.GetChains)
+		fiscobcos.GET("/chains/:chainid/status", srv.GetChainStatus)
+	}
 
-	r.POST("/bindings/:chainid", srv.AddServiceBinding)
-	r.PUT("/bindings/:chainid/:svcname", srv.UpdateServiceBinding)
-	r.GET("/bindings/:chainid/:svcname", srv.GetServiceBinding)
+	ser := api.Group("/service")
+	{
+		ser.POST("/bindings/:chainid", srv.AddServiceBinding)
+		ser.PUT("/bindings/:chainid/:svcname", srv.UpdateServiceBinding)
+		ser.GET("/bindings/:chainid/:svcname", srv.GetServiceBinding)
+	}
 
 	r.GET("/health", srv.ShowHealth)
 
@@ -54,13 +62,16 @@ func (srv *HTTPService) createRouter() {
 }
 
 func (srv *HTTPService) AddChain(c *gin.Context) {
-	var req AddChainRequest
-	if err := c.BindJSON(&req); err != nil {
-		onError(c, http.StatusBadRequest, "invalid JSON payload")
+	var bodyBytes []byte
+	// 从原有Request.Body读取
+	bodyBytes, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		logging.Logger.Errorf(err.Error())
+		c.JSON(http.StatusBadRequest, "invalid JSON payload")
 		return
 	}
 
-	chainID, err := srv.ChainManager.AddChain([]byte(req.ChainParams))
+	chainID, err := srv.ChainManager.AddChain(bodyBytes)
 	if err != nil {
 		onError(c, http.StatusInternalServerError, err.Error())
 		return

@@ -15,6 +15,10 @@ import (
 	"relayer/store"
 )
 
+const (
+	_HttpPort = "base.http_port"
+)
+
 // StartCmd implements the start command
 func StartCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -45,7 +49,7 @@ func StartCmd() *cobra.Command {
 			appChainFactory := appchains.NewAppChainFactory(store)
 			hubChain := hub.BuildIritaHubChain(hub.NewConfig(config))
 
-			serviceBindInfo :=  service.NewServiceBindInfo(config)
+			serviceBindInfo := service.NewServiceBindInfo(config)
 			relayerInstance := core.NewRelayer(appChainType, hubChain, appChainFactory, logging.Logger, serviceBindInfo)
 
 			baseConfigFactory := appchains.NewBaseConfigFactory(config)
@@ -57,17 +61,17 @@ func StartCmd() *cobra.Command {
 			appChainFactory.StoreBaseConfig(appChainType, baseConfigByte)
 			chainIDsbz, _ := store.Get([]byte("chainIDs"))
 			if chainIDsbz == nil {
-				chainIDsbz,err = json.Marshal(map[string]string{})
+				chainIDsbz, err = json.Marshal(map[string]string{})
 				if err != nil {
 					return err
 				}
 				store.Set([]byte("chainIDs"), chainIDsbz)
-			}else{
-				chainIDs:= map[string]string{}
+			} else {
+				chainIDs := map[string]string{}
 				json.Unmarshal(chainIDsbz, &chainIDs)
-				for chainID, chainType := range chainIDs{
-					if chainType == appChainType{
-						chainParams,err := store.Get([]byte(fmt.Sprintf("%s:params:%s", appChainType, chainID)))
+				for chainID, chainType := range chainIDs {
+					if chainType == appChainType {
+						chainParams, err := store.Get([]byte(fmt.Sprintf("%s:params:%s", appChainType, chainID)))
 						if err != nil {
 							return err
 						}
@@ -92,7 +96,12 @@ func StartCmd() *cobra.Command {
 			chainManager := server.NewChainManager(relayerInstance)
 			marketManger := server.NewMarketManager(relayerInstance)
 
-			server.StartWebServer(chainManager, marketManger)
+			httpPort := config.GetInt(_HttpPort)
+			if httpPort == 0 {
+				httpPort = 8082
+			}
+
+			server.StartWebServer(chainManager, marketManger, httpPort)
 
 			return nil
 		},

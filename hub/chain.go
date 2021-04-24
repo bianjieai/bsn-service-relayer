@@ -3,16 +3,16 @@ package hub
 import (
 	"encoding/json"
 	"errors"
-	"strconv"
 	"fmt"
 	servicesdk "github.com/irisnet/service-sdk-go"
 	"github.com/irisnet/service-sdk-go/service"
 	"github.com/irisnet/service-sdk-go/types"
 	"github.com/irisnet/service-sdk-go/types/store"
+	"strconv"
 
 	"relayer/core"
-	"relayer/mysql"
 	"relayer/logging"
+	"relayer/mysql"
 )
 
 // IritaHubChain defines the Irita-Hub chain
@@ -141,15 +141,15 @@ func (ic IritaHubChain) BuildServiceInvocationRequest(
 	if err != nil {
 		return service.InvokeServiceRequest{}, err
 	}
-
 	// TODO: request id, chain id and contract address will be added into the header on-chain when IBC enabled
 	var input ServiceInput
-	inputStr,err:=strconv.Unquote("\""+request.Input+"\"")
+	inputStr, err := strconv.Unquote("\"" + request.Input + "\"")
 	err = json.Unmarshal([]byte(inputStr), &input)
 	if err != nil {
+		logging.Logger.Errorf("Unmarshal error %v", err)
 		return service.InvokeServiceRequest{}, err
 	}
-	if input.Header == nil{
+	if input.Header == nil {
 		return service.InvokeServiceRequest{}, errors.New("input header cannot be empty")
 	}
 	input.AddHeader("RequestID", request.ID)

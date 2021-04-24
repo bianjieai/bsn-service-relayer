@@ -8,10 +8,11 @@ import (
 func StartWebServer(
 	chainManager *ChainManager,
 	marketManager *MarketManager,
+	port int,
 ) {
 	srv := NewHTTPService(chainManager, marketManager)
 
-	err := srv.Router.Run(":8082")
+	err := srv.Router.Run(fmt.Sprintf(":%d", port))
 	if err != nil {
 		fmt.Println(err)
 	}

@@ -1,6 +1,7 @@
 base:
     app_chain_type: fisco # application chain type
     store_path: .db # store path
+    http_port: 18082
 
 # irita-hub config
 hub:
@@ -35,6 +36,7 @@ fabric:
 
 # fisco config
 fisco:
+    chainId: 1
     monitor_interval: 1 # chain monitoring interval in seconds
     connection_type: channel
     ca_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/ca.crt
@@ -42,6 +44,10 @@ fisco:
     key_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/sdk.key
     sm_crypto: true
     priv_key_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/key.pem
+    nodes:
+        fisco1.bsnbase.com: 192.168.1.72:20200
+        fisco2.bsnbase.com: 192.168.1.72:20201
+
 
 # mysql config
 mysql:
@@ -53,8 +59,8 @@ mysql:
 
 # service config
 service:
-    service_name: fisco-contract-call
-    schemas: wddrdrtg
+    service_name: cross_service_dev
+    schemas: '{"input":{"type":"object"},"output":{"type:"object"}}'
     provider: iaa1fe6gm5kyam6xfs0wngw3d23l9djlyw82xxcjm2
     service_fee: 1000000upoint
     qos: 100

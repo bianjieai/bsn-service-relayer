@@ -2,7 +2,7 @@ package fisco
 
 import (
 	"encoding/json"
-	"fmt"
+	"strconv"
 )
 
 const (
@@ -17,16 +17,18 @@ type CompactBlock struct {
 
 // ChainParams defines the params for the specific chain
 type ChainParams struct {
-	NodeURLs           map[string]string `json:"node_urls"`
-	GroupID            int    `json:"group_id"`
-	ChainID            int64  `json:"chain_id"`
-	IServiceCoreAddr   string `json:"iservice_core_addr"`
-	IServiceMarketAddr string `json:"iservice_market_addr"`
+	NodeURLs           []string `json:"nodes"`
+	GroupID            int      `json:"groupId"`
+	ChainID            int64    `json:"chainId"`
+	IServiceCoreAddr   string   `json:"iserviceCoreAddr"`
+	IServiceMarketAddr string   `json:"iserviceMarketAddr"`
 }
 
 // GetChainID returns the unique chain id from the specified chain params
 func GetChainID(params ChainParams) string {
-	return fmt.Sprintf("%s-%d-%d", ChainType, params.GroupID, params.ChainID)
+	return strconv.FormatInt(params.ChainID, 10)
+
+	//	return fmt.Sprintf("%s-%d-%d", ChainType, params.GroupID, params.ChainID)
 }
 
 // GetChainIDFromBytes returns the unique chain id from the given chain params bytes
