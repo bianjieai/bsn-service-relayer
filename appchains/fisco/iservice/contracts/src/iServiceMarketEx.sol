@@ -12,6 +12,9 @@ contract iServiceMarketEx is Ownable {
     // mapping the service name to index
     mapping(string => ServiceBindingIndex) bindingIndices;
 
+    // address allowed to relay the interchain requests
+    address public relayer;
+
     // service binding
     struct ServiceBinding {
         string serviceName; // service name
@@ -66,8 +69,12 @@ contract iServiceMarketEx is Ownable {
     /**
      * @dev Constructor
      */
-    constructor() public Ownable() {
-        // no-op
+    constructor(address _relayer) public Ownable() {
+        if (_relayer != address(0)) {
+            relayer = _relayer;
+        } else {
+            relayer = owner();
+        }
     }
 
     /**
@@ -131,6 +138,17 @@ contract iServiceMarketEx is Ownable {
     }
 
     /**
+     * @dev Make sure that the sender is the relayer
+     */
+    modifier onlyRelayer() {
+        require(
+            msg.sender == relayer,
+            "iServiceCoreEx: sender is not the relayer"
+        );
+        _;
+    }
+
+    /**
      * @dev Add a service binding to the iService market
      * @param _serviceName Service name
      * @param _schemas Input and output schemas of the service definition to which the binding is attached
@@ -146,7 +164,7 @@ contract iServiceMarketEx is Ownable {
         uint256 _qos
     )
         external
-        onlyOwner
+        onlyRelayer
         validBinding(_serviceName, _schemas, _provider, _serviceFee, _qos)
         bindingDoesNotExist(_serviceName)
     {
@@ -173,7 +191,7 @@ contract iServiceMarketEx is Ownable {
         string _provider,
         string _serviceFee,
         uint256 _qos
-    ) external onlyOwner bindingExists(_serviceName) {
+    ) external onlyRelayer bindingExists(_serviceName) {
         ServiceBinding storage binding =
             bindings[bindingIndices[_serviceName].index];
 
@@ -198,13 +216,25 @@ contract iServiceMarketEx is Ownable {
      */
     function removeServiceBinding(string _serviceName)
         external
-        onlyOwner
+        onlyRelayer
         bindingExists(_serviceName)
     {
         delete bindings[bindingIndices[_serviceName].index]; // delete the binding
         delete bindingIndices[_serviceName]; // delete the index
 
         emit ServiceBindingRemoved(_serviceName);
+    }
+
+    /**
+     * @notice Set the relayer address
+     * @param _address Relayer address
+     */
+    function setRelayer(address _address) external onlyOwner {
+        require(
+            _address != address(0),
+            "iServiceCoreEx: relayer address can not be zero"
+        );
+        relayer = _address;
     }
 
     /**
