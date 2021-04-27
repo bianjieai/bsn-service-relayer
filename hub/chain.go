@@ -1,18 +1,19 @@
 package hub
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
-	"strconv"
 	"fmt"
 	servicesdk "github.com/irisnet/service-sdk-go"
 	"github.com/irisnet/service-sdk-go/service"
 	"github.com/irisnet/service-sdk-go/types"
 	"github.com/irisnet/service-sdk-go/types/store"
-
 	"relayer/core"
-	"relayer/mysql"
 	"relayer/logging"
+	"relayer/mysql"
+	"strconv"
+	"time"
 )
 
 // IritaHubChain defines the Irita-Hub chain
@@ -199,11 +200,23 @@ func (ic IritaHubChain) ResponseListener(reqCtxID string, requestID string, cb c
 
 	logging.Logger.Infof("waiting for the service response on %s", ic.ChainID)
 
-	_, err = ic.ServiceClient.SubscribeServiceResponse(reqCtxID, callbackWrapper)
+	subscription, err := ic.ServiceClient.SubscribeServiceResponse(reqCtxID, callbackWrapper)
 	if err != nil {
 		return err
 	}
 
+	go func() {
+		for{
+			reqCtx, err := ic.ServiceClient.QueryRequestContext(reqCtxID)
+			status, err2 := ic.ServiceClient.Status(context.Background())
+			req, err3 := ic.ServiceClient.QueryServiceRequest(requestID)
+			if err != nil || err2 != nil || err3 != nil || reqCtx.BatchState == "BATCH_COMPLETED" || status.SyncInfo.LatestBlockHeight > req.ExpirationHeight {
+				_ = ic.ServiceClient.Unsubscribe(subscription)
+				break
+			}
+			time.Sleep(time.Second)
+		}
+	}()
 	return nil
 }
 
