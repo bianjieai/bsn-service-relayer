@@ -19,8 +19,8 @@ import (
 	"relayer/appchains/fisco/iservice"
 	"relayer/common"
 	"relayer/core"
-	"relayer/mysql"
 	"relayer/logging"
+	"relayer/mysql"
 	"relayer/store"
 )
 
@@ -110,6 +110,8 @@ func BuildFISCOChain(
 	if err != nil {
 		return nil, err
 	}
+
+	logging.Logger.Infof("BuildFISCOChain chainInfo is %s", string(chainParams))
 
 	baseCfgBz, err := store.Get(BaseConfigKey())
 	if err != nil {

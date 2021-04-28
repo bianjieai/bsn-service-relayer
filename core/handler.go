@@ -49,5 +49,6 @@ func (r *Relayer) HandleInterchainRequest(chainID string, request InterchainRequ
 		return err
 	}
 
+	r.Logger.Infof("HandleInterchainRequest is End !!!")
 	return nil
 }

@@ -13,17 +13,17 @@ var DB *sql.DB
 
 type table struct {
 	funique_id    int64
-	request_id    string         //请求唯一id
-	from_chainid  string         //起始链ID
-	from_tx       string         //起始链交易ID
-	hub_req_tx    string         //HUB请求交易ID
-	to_chainid    string         //目标链ID
-	to_tx         *string         //目标链交易ID
-	hub_res_tx    string         //HUB响应交易ID
-	from_res_tx   *string         //向起始链响应数据的交易ID
-	tx_status     int         //交易状态
-	tx_time       *time.Time         //交易完成时间
-	tx_createtime time.Time         //交易创建时间
+	request_id    string     //请求唯一id
+	from_chainid  string     //起始链ID
+	from_tx       string     //起始链交易ID
+	hub_req_tx    string     //HUB请求交易ID
+	to_chainid    string     //目标链ID
+	to_tx         *string    //目标链交易ID
+	hub_res_tx    string     //HUB响应交易ID
+	from_res_tx   *string    //向起始链响应数据的交易ID
+	tx_status     int        //交易状态
+	tx_time       *time.Time //交易完成时间
+	tx_createtime time.Time  //交易创建时间
 }
 
 // NewDB create a instance of the mysql db
@@ -101,7 +101,10 @@ func update(field, value, requestID string) error {
 	return nil
 }
 func updateTime(field, requestID string) error {
-	cmd := fmt.Sprintf("UPDATE tb_irita_crosschain_tx SET %s=now() where request_id='%s'", field, requestID)
+
+	timestr := time.Now().Format("2006-01-02 15:04:05")
+
+	cmd := fmt.Sprintf("UPDATE tb_irita_crosschain_tx SET %s='%s' where request_id='%s'", field, timestr, requestID)
 	stmt, err := DB.Prepare(cmd)
 	if err != nil {
 		return err

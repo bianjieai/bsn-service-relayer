@@ -1,6 +1,7 @@
 package hub
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"github.com/irisnet/service-sdk-go/types"
 	"github.com/irisnet/service-sdk-go/types/store"
 	"strconv"
+	"time"
 
 	"relayer/core"
 	"relayer/logging"
@@ -144,6 +146,10 @@ func (ic IritaHubChain) BuildServiceInvocationRequest(
 	// TODO: request id, chain id and contract address will be added into the header on-chain when IBC enabled
 	var input ServiceInput
 	inputStr, err := strconv.Unquote("\"" + request.Input + "\"")
+	if err != nil || inputStr == "" {
+		inputStr = request.Input
+	}
+	logging.Logger.Infof("input is %s", inputStr)
 	err = json.Unmarshal([]byte(inputStr), &input)
 	if err != nil {
 		logging.Logger.Errorf("Unmarshal error %v", err)
@@ -199,10 +205,25 @@ func (ic IritaHubChain) ResponseListener(reqCtxID string, requestID string, cb c
 
 	logging.Logger.Infof("waiting for the service response on %s", ic.ChainID)
 
-	_, err = ic.ServiceClient.SubscribeServiceResponse(reqCtxID, callbackWrapper)
+	//_, err = ic.ServiceClient.SubscribeServiceResponse(reqCtxID, callbackWrapper)
+	subscription, err := ic.ServiceClient.SubscribeServiceResponse(reqCtxID, callbackWrapper)
 	if err != nil {
 		return err
 	}
+
+	go func() {
+		for {
+			reqCtx, err := ic.ServiceClient.QueryRequestContext(reqCtxID)
+			status, err2 := ic.ServiceClient.Status(context.Background())
+			req, err3 := ic.ServiceClient.QueryServiceRequest(requestID)
+			if err != nil || err2 != nil || err3 != nil || reqCtx.BatchState == "BATCH_COMPLETED" || status.SyncInfo.LatestBlockHeight > req.ExpirationHeight {
+				logging.Logger.Infof("HUB Unsubscribe RequestID is %s", requestID)
+				_ = ic.ServiceClient.Unsubscribe(subscription)
+				break
+			}
+			time.Sleep(time.Second)
+		}
+	}()
 
 	return nil
 }

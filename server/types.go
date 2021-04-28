@@ -3,8 +3,8 @@ package server
 import "fmt"
 
 const (
-	CODE_SUCCESS = 0
-	CODE_ERROR   = 1
+	CODE_SUCCESS = 1
+	CODE_ERROR   = 0
 )
 
 // AddChainRequest defines the request to add an app chain
@@ -18,9 +18,10 @@ type AddChainResult struct {
 }
 
 type AddChainAndBindServResult struct {
-	ChainID string `json:"chain_id"`
+	ChainID     string `json:"chain_id"`
 	ServiceName string `json:"service_name"`
 }
+
 // ChainStatus defines the chain status
 type ChainStatus struct {
 	State  bool  `json:"state"`
@@ -28,13 +29,13 @@ type ChainStatus struct {
 }
 
 type AddChainAndBindServRequest struct {
-	ChainParams string `json:"chain_params"`
-	ServParamsPath string  `json:"serv_params_path,omitempty"`
-	ServiceName string `json:"service_name,omitempty"`
-	Schemas     string `json:"schemas,omitempty"`
-	Provider    string `json:"provider,omitempty"`
-	ServiceFee  string `json:"service_fee,omitempty"`
-	QoS         uint64 `json:"qos,omitempty"`
+	ChainParams    string `json:"chain_params"`
+	ServParamsPath string `json:"serv_params_path,omitempty"`
+	ServiceName    string `json:"service_name,omitempty"`
+	Schemas        string `json:"schemas,omitempty"`
+	Provider       string `json:"provider,omitempty"`
+	ServiceFee     string `json:"service_fee,omitempty"`
+	QoS            uint64 `json:"qos,omitempty"`
 }
 
 // AddServiceBindingRequest defines the request to add a service binding
@@ -56,13 +57,14 @@ type UpdateServiceBindingRequest struct {
 // SuccessResponse defines the response on success
 type SuccessResponse struct {
 	Code   int         `json:"code"`
-	Result interface{} `json:"result,omitempty"`
+	Msg    string      `json:"msg"`
+	Result interface{} `json:"data,omitempty"`
 }
 
 // ErrorResponse defines the response on error
 type ErrorResponse struct {
 	Code  int    `json:"code"`
-	Error string `json:"error"`
+	Error string `json:"msg"`
 }
 
 // ValidateChainID validates the given chain ID
