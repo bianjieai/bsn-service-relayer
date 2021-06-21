@@ -16,41 +16,10 @@ type AddChainRequest struct {
 type AddChainResult struct {
 	ChainID string `json:"chain_id"`
 }
-
-type AddChainAndBindServResult struct {
-	ChainID string `json:"chain_id"`
-	ServiceName string `json:"service_name"`
-}
 // ChainStatus defines the chain status
 type ChainStatus struct {
 	State  bool  `json:"state"`
 	Height int64 `json:"height,omitempty"`
-}
-
-type AddChainAndBindServRequest struct {
-	ChainParams string `json:"chain_params"`
-	ServParamsPath string  `json:"serv_params_path,omitempty"`
-	ServiceName string `json:"service_name,omitempty"`
-	Schemas     string `json:"schemas,omitempty"`
-	Provider    string `json:"provider,omitempty"`
-	ServiceFee  string `json:"service_fee,omitempty"`
-	QoS         uint64 `json:"qos,omitempty"`
-}
-
-// AddServiceBindingRequest defines the request to add a service binding
-type AddServiceBindingRequest struct {
-	ServiceName string `json:"service_name"`
-	Schemas     string `json:"schemas"`
-	Provider    string `json:"provider"`
-	ServiceFee  string `json:"service_fee"`
-	QoS         uint64 `json:"qos"`
-}
-
-// UpdateServiceBindingRequest defines the request to update a service binding
-type UpdateServiceBindingRequest struct {
-	Provider   string `json:"provider"`
-	ServiceFee string `json:"service_fee"`
-	QoS        uint64 `json:"qos"`
 }
 
 // SuccessResponse defines the response on success
@@ -69,15 +38,6 @@ type ErrorResponse struct {
 func ValidateChainID(chainID string) error {
 	if len(chainID) == 0 {
 		return fmt.Errorf("chain ID can not be empty")
-	}
-
-	return nil
-}
-
-// ValidateServiceName validates the given service name
-func ValidateServiceName(serviceName string) error {
-	if len(serviceName) == 0 {
-		return fmt.Errorf("service name can not be empty")
 	}
 
 	return nil

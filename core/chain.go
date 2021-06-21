@@ -28,9 +28,6 @@ type AppChainI interface {
 
 	// send the response to the application chain
 	SendResponse(requestID string, response ResponseI) error
-
-	// iService market interface
-	IServiceMarketI
 }
 
 // AppChainFactoryI abstracts the application chain operation interface
@@ -52,19 +49,18 @@ type AppChainFactoryI interface {
 type InterchainRequest struct {
 	ID              string // request ID
 	ChainID         string // chain ID
-	ContractAddress string // contract address
-	ServiceName     string // service name
-	Provider        string // provider address
-	Input           string // request input
-	Timeout         uint64 // request timeout
-	ServiceFeeCap   string // service fee cap
+	DestChainID     string // target chain ID
+	EndpointAddress string // end point address
+	EndpointType    string // end point type
+	MethodAndArgs   string // target method name and json string of arguments
+	TxHash          string // transaction hash
+	Sender          string // message sender
 }
 
 // ResponseI defines the response related interfaces
 type ResponseI interface {
 	GetErrMsg() string              // error msg getter
 	GetOutput() string              // response output getter
-	GetInterchainRequestID() string // interchain request ID getter
 }
 
 // KeyManager defines the key management interface
@@ -75,27 +71,6 @@ type KeyManager interface {
 	Import(name, passphrase, keyArmor string) error
 	Export(name, passphrase string) (keyArmor string, err error)
 	Recover(name, passphrase, mnemonic string) (addr string, err error)
-}
-
-// IServiceMarketI defines the interface for the iService market on the application chain
-type IServiceMarketI interface {
-	// AddServiceBinding add a service binding to the iService market
-	AddServiceBinding(serviceName, schemas, provider, serviceFee string, qos uint64) error
-
-	// update the specified service binding
-	UpdateServiceBinding(serviceName, provider, serviceFee string, qos uint64) error
-
-	// get the service binding by the given service name from the iService market
-	GetServiceBinding(serviceName string) (ServiceBindingI, error)
-}
-
-// ServiceBindingI defines the iService binding interface
-type ServiceBindingI interface {
-	GetServiceName() string // service name getter
-	GetSchemas() string     // service schemas
-	GetProvider() string    // service provider
-	GetServiceFee() string  // service fee
-	GetQoS() uint64         // quality of service
 }
 
 // InterchainRequestHandler defines the interchain request handler interface

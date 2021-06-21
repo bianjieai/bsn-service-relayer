@@ -5,18 +5,20 @@ pragma solidity ^0.4.24;
  */
 interface iServiceInterface {
     /**
-     * @dev Initiate a service invocation
-     * @param _serviceName Service name
-     * @param _input Request input
-     * @param _timeout Request timeout
+     * @dev Send cross chain request
+     * @param _destChainID Target chain address
+     * @param _endpointAddress Target contract address or service bind address
+     * @param _endpointType service/contract/offchain
+     * @param _methodAndArgs Target method name and json string of arguments
      * @param _callbackAddress Callback contract address
      * @param _callbackFunction Callback function selector
      * @return requestID Request id
      */
-    function callService(
-        string  _serviceName,
-        string  _input,
-        uint256 _timeout,
+    function sendRequest(
+        string _destChainID,
+        string _endpointAddress,
+        string _endpointType,
+        string _methodAndArgs,
         address _callbackAddress,
         bytes4 _callbackFunction
     ) external returns (bytes32 requestID);
@@ -26,13 +28,10 @@ interface iServiceInterface {
      * @param _requestID Request id
      * @param _errMsg Error message of the service invocation
      * @param _output Response output
-     * @param _icRequestID Request id on Irita-Hub
-     * @return True on success, false otherwise
      */
     function setResponse(
         bytes32 _requestID,
         string  _errMsg,
-        string  _output,
-        string  _icRequestID
+        string  _output
     ) external returns (bool);
 }

@@ -1,12 +1,43 @@
 package hub
 
-// ServiceInput defines the service input
-type ServiceInput struct {
-	Header map[string]interface{} `json:"header"`
-	Body   map[string]interface{} `json:"body"`
+type Header struct {
+	ReqSequence string `json:"req_sequence"`
+	ChainID     string `json:"id"`
 }
 
-// AddHeader adds the given kv to the header
-func (s *ServiceInput) AddHeader(key string, value interface{}) {
-	s.Header[key] = value
+type Body struct {
+	Source `json:"source"`
+	Dest   `json:"dest"`
+	method string `json:"method"`
+	args   string `json:"args"`
+}
+
+type Source struct {
+	ID              string `json:"id"`
+	ChainID         string `json:"chain_id"`
+	SubChainID      string `json:"sub_chain_id"`
+	EndpointType    string `json:"endpoint_type"`
+	EndpointAddress string `json:"endpoint_address"`
+	Sender          string `json:"sender"`
+	TxHash          string `json:"tx_hash"`
+}
+
+type Dest struct {
+	ID              string `json:"id"`
+	ChainID         string `json:"chain_id"`
+	SubChainID      string `json:"sub_chain_id"`
+	EndpointType    string `json:"endpoint_type"`
+	EndpointAddress string `json:"endpoint_address"`
+}
+
+// ServiceInput defines the service input
+type ServiceInput struct {
+	Header `json:"header"`
+	Body   `json:"body"`
+}
+
+
+type MethodAndArgs struct {
+	Method string `json:"method"`
+	Args   interface{}  `json:"args"`
 }

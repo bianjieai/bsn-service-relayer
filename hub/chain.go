@@ -3,7 +3,6 @@ package hub
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	servicesdk "github.com/irisnet/service-sdk-go"
 	"github.com/irisnet/service-sdk-go/service"
@@ -16,6 +15,14 @@ import (
 	"time"
 )
 
+type ServiceInfo struct {
+	ServiceName string
+	Schemas     string
+	Provider    string
+	ServiceFee  string
+	QoS         uint64
+}
+
 // IritaHubChain defines the Irita-Hub chain
 type IritaHubChain struct {
 	ChainID     string
@@ -25,6 +32,7 @@ type IritaHubChain struct {
 	KeyName    string
 	Passphrase string
 
+	ServiceInfo   ServiceInfo
 	ServiceClient servicesdk.ServiceClient
 }
 
@@ -36,6 +44,11 @@ func NewIritaHubChain(
 	keyPath string,
 	keyName string,
 	passphrase string,
+	serviceName string,
+	schemas string,
+	provider string,
+	serviceFee string,
+	qos uint64,
 ) IritaHubChain {
 	if len(chainID) == 0 {
 		chainID = defaultChainID
@@ -51,6 +64,26 @@ func NewIritaHubChain(
 
 	if len(keyPath) == 0 {
 		keyPath = defaultKeyPath
+	}
+
+	if len(serviceName) == 0 {
+		keyPath = defaultServiceName
+	}
+
+	if len(schemas) == 0 {
+		keyPath = defaultSchemas
+	}
+
+	if len(provider) == 0 {
+		keyPath = defaultProvider
+	}
+
+	if len(serviceFee) == 0 {
+		keyPath = defaultServiceFee
+	}
+
+	if qos == 0 {
+		qos = defaultQoS
 	}
 
 	fee, err := types.ParseDecCoins(defaultFee)
@@ -71,11 +104,18 @@ func NewIritaHubChain(
 	}
 
 	hub := IritaHubChain{
-		ChainID:       chainID,
-		NodeRPCAddr:   nodeRPCAddr,
-		KeyPath:       keyPath,
-		KeyName:       keyName,
-		Passphrase:    passphrase,
+		ChainID:     chainID,
+		NodeRPCAddr: nodeRPCAddr,
+		KeyPath:     keyPath,
+		KeyName:     keyName,
+		Passphrase:  passphrase,
+		ServiceInfo: ServiceInfo{
+			ServiceName: serviceName,
+			Schemas:     schemas,
+			Provider:    provider,
+			ServiceFee:  serviceFee,
+			QoS:         qos,
+		},
 		ServiceClient: servicesdk.NewServiceClient(config),
 	}
 
@@ -91,6 +131,11 @@ func BuildIritaHubChain(config Config) IritaHubChain {
 		config.KeyPath,
 		config.KeyName,
 		config.Passphrase,
+		config.ServiceName,
+		config.Schemas,
+		config.Provider,
+		config.ServiceFee,
+		config.QoS,
 	)
 }
 
@@ -138,24 +183,41 @@ func (ic IritaHubChain) SendInterchainRequest(
 func (ic IritaHubChain) BuildServiceInvocationRequest(
 	request core.InterchainRequest,
 ) (service.InvokeServiceRequest, error) {
-	serviceFeeCap, err := types.ParseDecCoins(request.ServiceFeeCap)
+	serviceFeeCap, err := types.ParseDecCoins(ic.ServiceInfo.ServiceFee)
+	if err != nil {
+		return service.InvokeServiceRequest{}, err
+	}
+	var methodAndArgs MethodAndArgs
+	inputStr,err:= strconv.Unquote("\""+request.MethodAndArgs+"\"")
+	err = json.Unmarshal([]byte(inputStr), &methodAndArgs)
+	if err != nil {
+		return service.InvokeServiceRequest{}, err
+	}
+	ArgsByte, err := json.Marshal(methodAndArgs.Args)
 	if err != nil {
 		return service.InvokeServiceRequest{}, err
 	}
 
-	// TODO: request id, chain id and contract address will be added into the header on-chain when IBC enabled
-	var input ServiceInput
-	inputStr,err:=strconv.Unquote("\""+request.Input+"\"")
-	err = json.Unmarshal([]byte(inputStr), &input)
-	if err != nil {
-		return service.InvokeServiceRequest{}, err
+	input := ServiceInput{
+		Header: Header{
+			ReqSequence: request.ID,
+			ChainID:     request.ChainID,
+		},
+		Body: Body{
+			Source: Source{
+				ID:     ic.ChainID,
+				Sender: request.Sender,
+				TxHash: request.TxHash,
+			},
+			Dest: Dest{
+				ID:              request.ChainID,
+				EndpointType:    request.EndpointType,
+				EndpointAddress: request.EndpointAddress,
+			},
+			method: methodAndArgs.Method,
+			args: string(ArgsByte),
+		},
 	}
-	if input.Header == nil{
-		return service.InvokeServiceRequest{}, errors.New("input header cannot be empty")
-	}
-	input.AddHeader("RequestID", request.ID)
-	input.AddHeader("SourceChainID", request.ChainID)
-	input.AddHeader("ContractAddress", request.ContractAddress)
 
 	serviceInput, err := json.Marshal(input)
 	if err != nil {
@@ -163,10 +225,10 @@ func (ic IritaHubChain) BuildServiceInvocationRequest(
 	}
 
 	return service.InvokeServiceRequest{
-		ServiceName:   request.ServiceName,
-		Providers:     []string{request.Provider},
+		ServiceName:   ic.ServiceInfo.ServiceName,
+		Providers:     []string{ic.ServiceInfo.Provider},
 		Input:         string(serviceInput),
-		Timeout:       int64(request.Timeout),
+		Timeout:       100,
 		ServiceFeeCap: serviceFeeCap,
 	}, nil
 }
@@ -176,10 +238,9 @@ func (ic IritaHubChain) ResponseListener(reqCtxID string, requestID string, cb c
 	response, err := ic.ServiceClient.QueryServiceResponse(requestID)
 	if response.RequestContextID == reqCtxID {
 		resp := core.ResponseAdaptor{
-			StatusCode:  200,
-			Result:      response.Result,
-			Output:      response.Output,
-			ICRequestID: requestID,
+			StatusCode: 200,
+			Result:     response.Result,
+			Output:     response.Output,
 		}
 
 		cb(requestID, resp)
@@ -189,10 +250,9 @@ func (ic IritaHubChain) ResponseListener(reqCtxID string, requestID string, cb c
 
 	callbackWrapper := func(reqCtxID, requestID, result string, response string) {
 		resp := core.ResponseAdaptor{
-			StatusCode:  200,
-			Result:      result,
-			Output:      response,
-			ICRequestID: requestID,
+			StatusCode: 200,
+			Result:     result,
+			Output:     response,
 		}
 
 		cb(requestID, resp)
@@ -206,7 +266,7 @@ func (ic IritaHubChain) ResponseListener(reqCtxID string, requestID string, cb c
 	}
 
 	go func() {
-		for{
+		for {
 			reqCtx, err := ic.ServiceClient.QueryRequestContext(reqCtxID)
 			status, err2 := ic.ServiceClient.Status(context.Background())
 			req, err3 := ic.ServiceClient.QueryServiceRequest(requestID)

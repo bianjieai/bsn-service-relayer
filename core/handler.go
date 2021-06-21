@@ -10,6 +10,8 @@ func (r *Relayer) HandleInterchainRequest(chainID string, request InterchainRequ
 
 	mysql.OnInterchainRequestReceived(request.ID, chainID, txHash)
 
+	request.TxHash = txHash
+
 	callback := func(icRequestID string, response ResponseI) {
 		r.Logger.Infof(
 			"got the response of the interchain request on %s: %+v",

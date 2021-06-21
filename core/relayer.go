@@ -1,9 +1,7 @@
 package core
 
 import (
-	"errors"
 	"fmt"
-	"relayer/service"
 	"sync"
 
 	log "github.com/sirupsen/logrus"
@@ -19,12 +17,11 @@ type Relayer struct {
 	AppChainStates  map[string]bool
 	AppChainFactory AppChainFactoryI
 	Logger          *log.Logger
-	serviceBindInfo service.ServiceBindInfo
 	mtx             sync.Mutex
 }
 
 // NewRelayer constructs a new Relayer instance
-func NewRelayer(appChainType string, hub HubChainI, appChainFactory AppChainFactoryI, logger *log.Logger, serviceBindInfo service.ServiceBindInfo) *Relayer {
+func NewRelayer(appChainType string, hub HubChainI, appChainFactory AppChainFactoryI, logger *log.Logger) *Relayer {
 	return &Relayer{
 		AppChainType:    appChainType,
 		HubChain:        hub,
@@ -32,7 +29,6 @@ func NewRelayer(appChainType string, hub HubChainI, appChainFactory AppChainFact
 		Logger:          logger,
 		AppChains:       map[string]AppChainI{},
 		AppChainStates:  map[string]bool{},
-		serviceBindInfo: serviceBindInfo,
 	}
 }
 
@@ -63,20 +59,6 @@ func (r *Relayer) AddChain(appChainParams []byte) (chainID string, err error) {
 	r.AppChains[chainID] = chain
 	r.AppChainStates[chainID] = true
 
-	_, err = chain.GetServiceBinding(r.serviceBindInfo.ServiceName)
-	if err == nil {
-		err2 := chain.UpdateServiceBinding(r.serviceBindInfo.ServiceName, r.serviceBindInfo.Provider, r.serviceBindInfo.ServiceFee, r.serviceBindInfo.QoS)
-		if err2 != nil {
-			return chainID, errors.New("update service binding failed:" + err2.Error())
-		}
-	}else if err.Error() == "service does not exist" {
-		err2 := chain.AddServiceBinding(r.serviceBindInfo.ServiceName, r.serviceBindInfo.Schemas, r.serviceBindInfo.Provider, r.serviceBindInfo.ServiceFee, r.serviceBindInfo.QoS)
-		if err2 != nil {
-			return chainID, errors.New("update service binding failed:" + err2.Error())
-		}
-	}else{
-		return chainID, errors.New("add service binding failed:" + err.Error())
-	}
 	return chainID, nil
 }
 

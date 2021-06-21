@@ -118,8 +118,8 @@ func BuildClientConfig(config Config) *conf.Config {
 		Cert:       config.CertFile,
 		PrivateKey: config.PrivateKey,
 		IsSMCrypto: config.IsSMCrypto,
-		GroupID:    config.GroupID,
-		ChainID:    config.ChainID,
+		GroupID:    GetFiscoGroupID(config.ChainID),
+		ChainID:    GetFiscoChainID(config.ChainID),
 		NodeURL:    randURL(config.NodeURLs),
 	}
 }

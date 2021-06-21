@@ -10,18 +10,15 @@ import (
 type HTTPService struct {
 	Router        *gin.Engine
 	ChainManager  *ChainManager
-	MarketManager *MarketManager
 }
 
 // NewHTTPService constructs a new HTTPService instance
 func NewHTTPService(
 	chainManager *ChainManager,
-	marketManager *MarketManager,
 ) *HTTPService {
 	srv := HTTPService{
 		Router:        gin.Default(),
 		ChainManager:  chainManager,
-		MarketManager: marketManager,
 	}
 
 	srv.createRouter()
@@ -43,10 +40,6 @@ func (srv *HTTPService) createRouter() {
 	r.POST("/chains/:chainid/stop", srv.StopChain)
 	r.GET("/chains", srv.GetChains)
 	r.GET("/chains/:chainid/status", srv.GetChainStatus)
-
-	r.POST("/bindings/:chainid", srv.AddServiceBinding)
-	r.PUT("/bindings/:chainid/:svcname", srv.UpdateServiceBinding)
-	r.GET("/bindings/:chainid/:svcname", srv.GetServiceBinding)
 
 	r.GET("/health", srv.ShowHealth)
 
@@ -165,78 +158,6 @@ func (srv *HTTPService) GetChainStatus(c *gin.Context) {
 	}
 
 	onSuccess(c, ChainStatus{State: state, Height: height})
-}
-
-func (srv *HTTPService) AddServiceBinding(c *gin.Context) {
-	var req AddServiceBindingRequest
-	if err := c.BindJSON(&req); err != nil {
-		onError(c, http.StatusBadRequest, "invalid JSON payload")
-		return
-	}
-
-	chainID := c.Param("chainid")
-	if err := ValidateChainID(chainID); err != nil {
-		onError(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	err := srv.MarketManager.AddServiceBinding(chainID, req)
-	if err != nil {
-		onError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	onSuccess(c, nil)
-}
-
-func (srv *HTTPService) UpdateServiceBinding(c *gin.Context) {
-	var req UpdateServiceBindingRequest
-	if err := c.BindJSON(&req); err != nil {
-		onError(c, http.StatusBadRequest, "invalid JSON payload")
-		return
-	}
-
-	chainID := c.Param("chainid")
-	if err := ValidateChainID(chainID); err != nil {
-		onError(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	serviceName := c.Param("svcname")
-	if err := ValidateServiceName(serviceName); err != nil {
-		onError(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	err := srv.MarketManager.UpdateServiceBinding(chainID, serviceName, req)
-	if err != nil {
-		onError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	onSuccess(c, nil)
-}
-
-func (srv *HTTPService) GetServiceBinding(c *gin.Context) {
-	chainID := c.Param("chainid")
-	if err := ValidateChainID(chainID); err != nil {
-		onError(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	serviceName := c.Param("svcname")
-	if err := ValidateServiceName(serviceName); err != nil {
-		onError(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	binding, err := srv.MarketManager.GetServiceBinding(chainID, serviceName)
-	if err != nil {
-		onError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	onSuccess(c, binding)
 }
 
 // ShowHealth returns the health state

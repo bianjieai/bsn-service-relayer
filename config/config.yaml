@@ -11,28 +11,6 @@ hub:
     key_name: node0
     passphrase: 1234567890
 
-# ethereum config
-eth:
-    chain_id: ropsten
-    node_rpc_addr: wss://ropsten.infura.io/ws/v3/56e89587eacb4fbe8655e4c44b146237
-    gas_limit: 2000000
-    gas_price: 5000000000
-    key: 5dee232c8be5cb81f0ae6fddb45243fc6208192c16aef275ef41b019df765d1f
-    iservice_core_addr: 0x79b6c1ab5dbeba4879bfbea35a78fac8e6c73c92
-    iservice_market_addr: 0x87e71e95fbd95d66e307edaeb7974c1f17f87a82
-    iservice_event_name: ServiceInvoked
-    iservice_event_sig: ServiceInvoked(bytes32,string,string,uint256)
-
-# fabric config
-fabric:
-    channel_id: test-channel
-    peer_rpc_addrs:
-      - grpc://127.0.0.1:7051
-      - grpc://127.0.0.1:7052
-    orderer_rpc_addr: grpc://127.0.0.1:7050
-    key: test
-    passphrase: 123456789
-
 # fisco config
 fisco:
     monitor_interval: 1 # chain monitoring interval in seconds
@@ -53,8 +31,8 @@ mysql:
 
 # service config
 service:
-    service_name: fisco-contract-call
-    schemas: wddrdrtg
+    service_name: cc-contract-call
+    schemas: wd
     provider: iaa1fe6gm5kyam6xfs0wngw3d23l9djlyw82xxcjm2
     service_fee: 1000000upoint
     qos: 100

@@ -11,7 +11,6 @@ import (
 	"relayer/logging"
 	"relayer/mysql"
 	"relayer/server"
-	"relayer/service"
 	"relayer/store"
 )
 
@@ -19,7 +18,7 @@ import (
 func StartCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start [config-file]",
-		Short: "Start the relayer daemon",
+		Short: "Start the relayer demon",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			configFileName := ""
@@ -44,9 +43,7 @@ func StartCmd() *cobra.Command {
 
 			appChainFactory := appchains.NewAppChainFactory(store)
 			hubChain := hub.BuildIritaHubChain(hub.NewConfig(config))
-
-			serviceBindInfo :=  service.NewServiceBindInfo(config)
-			relayerInstance := core.NewRelayer(appChainType, hubChain, appChainFactory, logging.Logger, serviceBindInfo)
+			relayerInstance := core.NewRelayer(appChainType, hubChain, appChainFactory, logging.Logger)
 
 			baseConfigFactory := appchains.NewBaseConfigFactory(config)
 			BaseConfig, err := baseConfigFactory.NewBaseConfig(appChainType)
@@ -90,9 +87,8 @@ func StartCmd() *cobra.Command {
 			defer mysql.Close()
 
 			chainManager := server.NewChainManager(relayerInstance)
-			marketManger := server.NewMarketManager(relayerInstance)
 
-			server.StartWebServer(chainManager, marketManger)
+			server.StartWebServer(chainManager)
 
 			return nil
 		},

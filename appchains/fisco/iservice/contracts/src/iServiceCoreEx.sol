@@ -2,7 +2,6 @@ pragma solidity ^0.4.24;
 
 import "./vendor/Ownable.sol";
 import "./interfaces/iServiceInterface.sol";
-import "./interfaces/iServiceMarketInterface.sol";
 
 /**
  * @title iService Core Extension contract
@@ -14,73 +13,55 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     // mapping the request id to Callback
     mapping(bytes32 => Callback) callbacks;
 
-    // mapping the request id to Response
-    mapping(bytes32 => Response) responses;
-
     // global request count
     uint256 public requestCount;
 
     // address allowed to relay the interchain requests
     address public relayer;
 
-    // iService market used to query the service binding
-    iServiceMarketInterface public iServiceMarket;
-
-    // empty input
-    string emptyInput = '{"header":{},"body":{}}';
-
     // service request
     struct Request {
         bytes32 id; // request id
-        address contractAddress; // address of the contract initiating the request
-        string serviceName; // service name
-        string provider; // service provider
-        string input; // request input
-        string serviceFeeCap; // service fee cap
-        uint256 timeout; // request timeout
+        bool responded; // if request has been responded
     }
 
     // request callback
     struct Callback {
-        address contractAddress; // callback contract address
+        address callbackAddress; // callback contract address
         bytes4 functionSelector; // callback function selector
     }
 
     // service response
     struct Response {
+        bytes32 id; // response id, equals to request id
         string errMsg; // error message of the service invocation
         string output; // response output
-        string icRequestID; // the interchain request id on Irita-Hub
     }
 
+
     /**
-     * @dev Event triggered when the service invocation is initiated
+     * @dev Event triggered when the request is sent
      * @param _requestID Request id
-     * @param _contractAddress Contract address
-     * @param _serviceName Service name
-     * @param _provider Provider address
-     * @param _input Request input
-     * @param _timeout Request timeout
-     * @return requestID Request id
+     * @param _destChainID Target chain address
+     * @param _endpointAddress Target contract address or service bind address
+     * @param _endpointType service/contract/offchain
+     * @param _methodAndArgs Target method name and arguments
+     * @param _sender Message sender
      */
-    event ServiceInvoked(
+    event CrossChainRequestSent(
         bytes32 _requestID,
-        address _contractAddress,
-        string _serviceName,
-        string _provider,
-        string _input,
-        string _serviceFeeCap,
-        uint256 _timeout
+        string _destChainID, //destination chainID
+        string _endpointAddress, // address of the end point
+        string _endpointType, //contract/service
+        string _methodAndArgs, // target method name and json string of arguments
+        address _sender
     );
 
     /**
      * @dev Constructor
-     * @param _iServiceMarket iService market contract address
      * @param _relayer Relayer address
      */
-    constructor(address _iServiceMarket, address _relayer) public Ownable() {
-        _setIServiceMarket(_iServiceMarket);
-
+    constructor(address _relayer) public Ownable() {
         if (_relayer != address(0)) {
             relayer = _relayer;
         } else {
@@ -90,19 +71,24 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
 
     /**
      * @dev Make sure that the request is valid
-     * @param _serviceName Service name
-     * @param _timeout Request timeout
      */
-    modifier checkRequest(string memory _serviceName, uint256 _timeout) {
+    modifier checkRequest(
+        string _destChainID,
+        string _endpointAddress,
+        string _methodAndArgs
+    ) {
         require(
-            bytes(_serviceName).length > 0,
-            "iServiceCoreEx: service name can not be empty"
+            bytes(_destChainID).length > 0,
+            "iServiceCoreEx: destChainID can not be empty"
         );
         require(
-            _timeout > 0,
-            "iServiceCoreEx: request timeout must be greater than 0"
+            bytes(_endpointAddress).length > 0,
+            "iServiceCoreEx: endpointAddress can not be empty"
         );
-
+        require(
+            bytes(_methodAndArgs).length > 0,
+            "iServiceCoreEx: method can not be empty"
+        );
         _;
     }
 
@@ -110,18 +96,19 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
      * @dev Make sure that the request exists and has not been responded
      * @param _requestID Request id
      */
-    modifier validRequest(bytes32 _requestID) {
+    modifier validateRequest(bytes32 _requestID) {
         require(
-            bytes(requests[_requestID].serviceName).length > 0,
+            requests[_requestID].id.length > 0,
             "iServiceCoreEx: request does not exist"
         );
         require(
-            bytes(responses[_requestID].icRequestID).length == 0,
+            requests[_requestID].responded == false,
             "iServiceCoreEx: request has been responded"
         );
 
         _;
     }
+
 
     /**
      * @dev Make sure that the sender is the relayer
@@ -135,42 +122,41 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @dev Initiate a service invocation
-     * @param _serviceName Service name
-     * @param _input Request input
-     * @param _timeout Request timeout
+     * @dev Send cross chain request
+     * @param _destChainID Target chain address
+     * @param _endpointAddress Target contract address or service bind address
+     * @param _endpointType service/contract/offchain
+     * @param _methodAndArgs Target method name and arguments
      * @param _callbackAddress Callback contract address
      * @param _callbackFunction Callback function selector
      * @return requestID Request id
      */
-    function callService(
-        string _serviceName,
-        string _input,
-        uint256 _timeout,
+    function sendRequest(
+        string  _destChainID,
+        string _endpointAddress,
+        string _endpointType,
+        string _methodAndArgs,
         address _callbackAddress,
         bytes4 _callbackFunction
     )
-        external
-        checkRequest(_serviceName, _timeout)
-        returns (bytes32 requestID)
+    external
+    checkRequest(_destChainID, _endpointAddress, _methodAndArgs)
+    returns (bytes32 requestID)
     {
-        Request memory req;
+        requestID = keccak256(abi.encodePacked(_destChainID, requestCount));
 
-        req.contractAddress = msg.sender;
-        req.serviceName = _serviceName;
-        req.input = _input;
-        req.timeout = _timeout;
+        requestCount ++;
 
-        if (bytes(req.input).length == 0) {
-            req.input = emptyInput;
-        }
-
-        _populateRequest(req);
-        requestID = _sendRequest(req);
-        req.id = requestID;
+        emit CrossChainRequestSent(
+            requestID,
+            _destChainID,
+            _endpointAddress,
+            _endpointType,
+            _methodAndArgs,
+            msg.sender
+        );
 
         _saveRequestCallback(requestID, _callbackAddress, _callbackFunction);
-
         return requestID;
     }
 
@@ -179,58 +165,33 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
      * @param _requestID Request id
      * @param _errMsg Error message of the service invocation
      * @param _output Response output
-     * @param _icRequestID Request id on Irita-Hub
      * @return True on success, false otherwise
      */
     function setResponse(
         bytes32 _requestID,
         string _errMsg,
-        string _output,
-        string _icRequestID
-    ) external onlyRelayer validRequest(_requestID) returns (bool) {
-        Response memory resp;
+        string _output
+    ) external onlyRelayer validateRequest(_requestID) returns (bool) {
+        Callback memory cb = callbacks[_requestID];
 
-        resp.errMsg = _errMsg;
-        resp.icRequestID = _icRequestID;
+        string memory result;
 
-        if (bytes(_errMsg).length == 0) {
-            resp.output = _output;
+        if(bytes(_errMsg).length > 0){
+            result = _errMsg;
+        }else{
+            result = _output;
         }
 
-        responses[_requestID] = resp;
-
-        Callback memory cb = callbacks[_requestID];
         bool success =
-            cb.contractAddress.call(
-                abi.encodeWithSelector(
-                    cb.functionSelector,
-                    _requestID,
-                    resp.output
-                )
-            );
+        cb.callbackAddress.call(
+            abi.encodeWithSelector(
+                cb.functionSelector,
+                _requestID,
+                result
+            )
+        );
 
         return success;
-    }
-
-    /**
-     * @dev Retrieve the response of the given service request
-     * @param _requestID Request id
-     * @return Response
-     */
-    function getResponse(bytes32 _requestID)
-        public
-        view
-        returns (
-            string,
-            string,
-            string
-        )
-    {
-        return (
-            responses[_requestID].errMsg,
-            responses[_requestID].output,
-            responses[_requestID].icRequestID
-        );
     }
 
     /**
@@ -245,50 +206,15 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
         relayer = _address;
     }
 
-    /**
-     * @notice Set the iService market
-     * @param _address iService market contract address
-     */
-    function setIServiceMarket(address _address) external onlyOwner {
-        _setIServiceMarket(_address);
-    }
+    function _saveRequest(
+        bytes32 _requestID
+    ) internal {
+        Request memory req;
 
-    /**
-     * @notice Set the iService market
-     * @param _address iService market contract address
-     */
-    function _setIServiceMarket(address _address) internal {
-        require(
-            _address != address(0),
-            "iServiceCoreEx: iService market address can not be zero"
-        );
-        iServiceMarket = iServiceMarketInterface(_address);
-    }
+        req.id = _requestID;
+        req.responded = false;
 
-    /**
-     * @notice Polulate the given request with the extra service market data
-     * @param _req Request
-     */
-    function _populateRequest(Request memory _req) internal view {
-        bool exist = iServiceMarket.serviceBindingExists(_req.serviceName);
-        require(
-            exist,
-            "iServiceCoreEx: service does not exist in the service market"
-        );
-
-        uint256 qos = iServiceMarket.getQoS(_req.serviceName);
-        require(
-            _req.timeout >= qos,
-            "iServiceCoreEx: request timeout must be greater than or equal to the service QoS"
-        );
-
-        string memory provider =
-            iServiceMarket.getServiceProvider(_req.serviceName);
-        string memory serviceFee =
-            iServiceMarket.getServiceFee(_req.serviceName);
-
-        _req.provider = provider;
-        _req.serviceFeeCap = serviceFee;
+        requests[_requestID] = req;
     }
 
     /**
@@ -304,36 +230,9 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     ) internal {
         Callback memory cb;
 
-        cb.contractAddress = _callbackAddress;
+        cb.callbackAddress = _callbackAddress;
         cb.functionSelector = _callbackFunction;
 
         callbacks[_requestID] = cb;
-    }
-
-    /**
-     * @notice Send the service request
-     * @param _req Request
-     */
-    function _sendRequest(Request memory _req)
-        internal
-        returns (bytes32 requestID)
-    {
-        requestID = keccak256(abi.encodePacked(this, requestCount));
-
-        _req.id = requestID;
-        requests[requestID] = _req;
-        requestCount += 1;
-
-        emit ServiceInvoked(
-            _req.id,
-            _req.contractAddress,
-            _req.serviceName,
-            _req.provider,
-            _req.input,
-            _req.serviceFeeCap,
-            _req.timeout
-        );
-
-        return requestID;
     }
 }

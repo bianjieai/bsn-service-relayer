@@ -4,9 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"math/big"
 	"strings"
 	"time"
 
@@ -19,8 +17,8 @@ import (
 	"relayer/appchains/fisco/iservice"
 	"relayer/common"
 	"relayer/core"
-	"relayer/mysql"
 	"relayer/logging"
+	"relayer/mysql"
 	"relayer/store"
 )
 
@@ -30,9 +28,8 @@ type FISCOChain struct {
 	Client  *fiscoclient.Client
 	ChainID string // unique chain ID
 
-	IServiceCoreSession   *iservice.IServiceCoreExSession   // iService Core Extension contract session
-	IServiceMarketSession *iservice.IServiceMarketExSession // iService Market Extension contract session
-	IServiceCoreABI       abi.ABI                           // parsed iService Core Extension ABI
+	IServiceCoreSession *iservice.IServiceCoreExSession // iService Core Extension contract session
+	IServiceCoreABI     abi.ABI                         // parsed iService Core Extension ABI
 
 	store      *store.Store // store backend instance
 	lastHeight int64        // last height
@@ -63,26 +60,20 @@ func NewFISCOChain(
 		return nil, fmt.Errorf("failed to instantiate the iService Core Extension contract: %s", err)
 	}
 
-	iServiceMarket, err := iservice.NewIServiceMarketEx(ethcmn.HexToAddress(config.IServiceMarketAddr), client)
-	if err != nil {
-		return nil, fmt.Errorf("failed to instantiate the iService Market Extension contract: %s", err)
-	}
-
 	if config.MonitorInterval == 0 {
 		config.MonitorInterval = DefaultMonitorInterval
 	}
 
-	chainID := GetChainID(config.ChainParams)
+	chainID := config.ChainParams.ChainID
 
 	fisco := &FISCOChain{
-		Config:                config,
-		Client:                client,
-		ChainID:               chainID,
-		IServiceCoreSession:   &iservice.IServiceCoreExSession{Contract: iServiceCore, CallOpts: *client.GetCallOpts(), TransactOpts: *client.GetTransactOpts()},
-		IServiceMarketSession: &iservice.IServiceMarketExSession{Contract: iServiceMarket, CallOpts: *client.GetCallOpts(), TransactOpts: *client.GetTransactOpts()},
-		IServiceCoreABI:       iServiceCoreABI,
-		store:                 store,
-		done:                  true,
+		Config:              config,
+		Client:              client,
+		ChainID:             chainID,
+		IServiceCoreSession: &iservice.IServiceCoreExSession{Contract: iServiceCore, CallOpts: *client.GetCallOpts(), TransactOpts: *client.GetTransactOpts()},
+		IServiceCoreABI:     iServiceCoreABI,
+		store:               store,
+		done:                true,
 	}
 
 	err = fisco.storeChainParams()
@@ -174,7 +165,7 @@ func (f *FISCOChain) SendResponse(requestID string, response core.ResponseI) err
 	var requestID32Bytes [32]byte
 	copy(requestID32Bytes[:], requestIDBytes)
 
-	tx, _, err := f.IServiceCoreSession.SetResponse(requestID32Bytes, response.GetErrMsg(), response.GetOutput(), response.GetInterchainRequestID())
+	tx, _, err := f.IServiceCoreSession.SetResponse(requestID32Bytes, response.GetErrMsg(), response.GetOutput())
 	if err != nil {
 		mysql.TxErrCollection(requestID, err.Error())
 		return err
@@ -194,56 +185,16 @@ func (f *FISCOChain) SendResponse(requestID string, response core.ResponseI) err
 	return nil
 }
 
-// AddServiceBinding implements AppChainI
-func (f *FISCOChain) AddServiceBinding(serviceName, schemas, provider, serviceFee string, qos uint64) error {
-	tx, _, err := f.IServiceMarketSession.AddServiceBinding(serviceName, schemas, provider, serviceFee, big.NewInt(int64(qos)))
-	if err != nil {
-		return fmt.Errorf("failed to send AddServiceBinding transaction: %s", err)
-	}
-
-	return f.waitForReceipt(tx, "AddServiceBinding")
-}
-
-// UpdateServiceBinding implements AppChainI
-func (f *FISCOChain) UpdateServiceBinding(serviceName, provider, serviceFee string, qos uint64) error {
-	tx, _, err := f.IServiceMarketSession.UpdateServiceBinding(serviceName, provider, serviceFee, big.NewInt(int64(qos)))
-	if err != nil {
-		return fmt.Errorf("failed to send UpdateServiceBinding transaction: %s", err)
-	}
-
-	return f.waitForReceipt(tx, "UpdateServiceBinding")
-}
-
-// GetServiceBinding implements AppChainI
-func (f *FISCOChain) GetServiceBinding(serviceName string) (core.ServiceBindingI, error) {
-	serviceName, schemas, provider, serviceFee, qos, err := f.IServiceMarketSession.GetServiceBinding(serviceName)
-	if err != nil {
-		return nil, err
-	}
-	if len(serviceName) == 0 {
-		return nil, errors.New("service does not exist")
-	}
-
-	return iservice.ServiceBinding{
-		ServiceName: serviceName,
-		Schemas:     schemas,
-		Provider:    provider,
-		ServiceFee:  serviceFee,
-		QoS:         qos,
-	}, nil
-}
-
 // buildInterchainRequest builds an interchain request from the interchain event
-func (f *FISCOChain) buildInterchainRequest(e *iservice.IServiceCoreExServiceInvoked) core.InterchainRequest {
+func (f *FISCOChain) buildInterchainRequest(e *iservice.IServiceCoreExCrossChainRequestSent) core.InterchainRequest {
 	return core.InterchainRequest{
 		ID:              hex.EncodeToString(e.RequestID[:]),
 		ChainID:         f.ChainID,
-		ContractAddress: e.ContractAddress.String(),
-		ServiceName:     e.ServiceName,
-		Provider:        e.Provider,
-		Input:           e.Input,
-		Timeout:         e.Timeout.Uint64(),
-		ServiceFeeCap:   e.ServiceFeeCap,
+		DestChainID:     e.DestChainID,
+		EndpointAddress: e.EndpointAddress,
+		EndpointType:    e.EndpointType,
+		MethodAndArgs:   e.MethodAndArgs,
+		Sender:          e.Sender.String(),
 	}
 }
 
@@ -357,12 +308,12 @@ func (f *FISCOChain) parseInterchainEventsFromBlock(block CompactBlock) {
 			continue
 		}
 
-		f.parseServiceInvokedEvents(receipt)
+		f.parseCrossChaiRequestSentEvents(receipt)
 	}
 }
 
 // parseServiceInvokedEvents parses the ServiceInvoked events from the receipt
-func (f *FISCOChain) parseServiceInvokedEvents(receipt *types.Receipt) {
+func (f *FISCOChain) parseCrossChaiRequestSentEvents(receipt *types.Receipt) {
 	for _, log := range receipt.Logs {
 		if !strings.EqualFold(log.Address, f.Config.IServiceCoreAddr) {
 			continue
@@ -374,8 +325,8 @@ func (f *FISCOChain) parseServiceInvokedEvents(receipt *types.Receipt) {
 			continue
 		}
 
-		var event iservice.IServiceCoreExServiceInvoked
-		err = f.IServiceCoreABI.Unpack(&event, "ServiceInvoked", data)
+		var event iservice.IServiceCoreExCrossChainRequestSent
+		err = f.IServiceCoreABI.Unpack(&event, "CrossChainRequestSent", data)
 		if err != nil {
 			logging.Logger.Errorf("failed to unpack the log data: %s", err)
 			continue
