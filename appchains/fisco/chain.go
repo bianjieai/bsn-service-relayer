@@ -187,12 +187,18 @@ func (f *FISCOChain) SendResponse(requestID string, response core.ResponseI) err
 
 // buildInterchainRequest builds an interchain request from the interchain event
 func (f *FISCOChain) buildInterchainRequest(e *iservice.IServiceCoreExCrossChainRequestSent) core.InterchainRequest {
+	var endpointInfo EndpointInfo
+	err := json.Unmarshal([]byte(e.EndpointInfo), &endpointInfo)
+	if err != nil {
+		logging.Logger.Errorf("failed to decode endpointInfo: %s", err)
+	}
 	return core.InterchainRequest{
 		ID:              hex.EncodeToString(e.RequestID[:]),
-		ChainID:         f.ChainID,
-		DestChainID:     e.DestChainID,
-		EndpointAddress: e.EndpointAddress,
-		EndpointType:    e.EndpointType,
+		SourceChainID:   f.ChainID,
+		DestChainID:     endpointInfo.DestChainID,
+		EndpointAddress: endpointInfo.EndpointAddress,
+		EndpointType:    endpointInfo.EndpointType,
+		Method:          e.Method,
 		MethodAndArgs:   e.MethodAndArgs,
 		Sender:          e.Sender.String(),
 	}

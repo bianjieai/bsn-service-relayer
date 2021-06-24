@@ -1,24 +1,22 @@
 pragma solidity ^0.4.24;
 
 /**
- * @title core interface
+ * @title iService interface
  */
-interface coreInterface {
+interface iServiceInterface {
     /**
      * @dev Send cross chain request
-     * @param _destChainID Target chain address
-     * @param _endpointAddress Target contract address or service bind address
-     * @param _endpointType service/contract/offchain
+     * @param _endpointInfo information of endpoint
+     * @param _method Target method name
      * @param _methodAndArgs Target method name and arguments
      * @param _callbackAddress Callback contract address
      * @param _callbackFunction Callback function selector
      * @return requestID Request id
      */
     function sendRequest(
-        string _destChainID,
-        string _endpointAddress,
-        string _endpointType,
-        string _methodAndArgs,
+        string _endpointInfo,
+        string _method,
+        bytes _methodAndArgs,
         address _callbackAddress,
         bytes4 _callbackFunction
     ) external returns (bytes32 requestID);
@@ -36,11 +34,12 @@ interface coreInterface {
     ) external returns (bool);
 }
 
+
 /*
  * @title Contract for the iService core extension client
  */
 contract iServiceClient {
-    coreInterface iServiceCore; // iService Core contract address
+    iServiceInterface iServiceCore; // iService Core contract address
 
     // mapping the request id to Request
     mapping(bytes32 => Request) requests;
@@ -70,27 +69,26 @@ contract iServiceClient {
         _;
     }
 
-    /*
-     * @dev Send the iService request
-     * @param _serviceName Service name
-     * @param _input Service request input
-     * @param _timeout Service request timeout
+    /**
+     * @dev Send cross chain request
+     * @param _endpointInfo information of endpoint
+     * @param _method Target method name
+     * @param _methodAndArgs Target method name and arguments
      * @param _callbackAddress Callback contract address
      * @param _callbackFunction Callback function selector
      * @return requestID Request id
      */
     function sendIServiceRequest(
-        string _destChainID,
-        string _endpointAddress,
-        string _endpointType,
-        string _methodAndArgs,
+        string _endpointInfo,
+        string _method,
+        bytes _methodAndArgs,
         address _callbackAddress,
         bytes4 _callbackFunction
     )
     internal
     returns (bytes32 requestID)
     {
-        requestID = iServiceCore.sendRequest(_destChainID, _endpointAddress, _endpointType, _methodAndArgs, address(this), this.onResponse.selector);
+        requestID = iServiceCore.sendRequest(_endpointInfo, _method, _methodAndArgs, address(this), this.onResponse.selector);
 
         Request memory request = Request(
             _callbackAddress,
@@ -132,7 +130,7 @@ contract iServiceClient {
      */
     function setIServiceCore(address _iServiceCore) internal {
         require(_iServiceCore != address(0), "iServiceClient: iService core address can not be zero");
-        iServiceCore = coreInterface(_iServiceCore);
+        iServiceCore = iServiceInterface(_iServiceCore);
     }
 }
 
@@ -141,9 +139,7 @@ contract iServiceClient {
  * The service is supported by price service
  */
 contract ServiceConsumer is iServiceClient {
-    string private destChainID = "fisco-1-1";
-    string private endpointAddress = "0xe9708c47B560AC923E5a9096669fC71E8bD771Cb";
-    string private endpointType = "contract";
+    string private endpointInfo = "{\"dest_chain_id\":\"fisco-1-1\",\"endpoint_address\":\"0xe9708c47B560AC923E5a9096669fC71E8bD771Cb\",\"endpoint_type\":\"contract\"}";
     string public helloMsg;
 
     event Hello(bytes32 _requestID, string _helloMsg);
@@ -162,18 +158,21 @@ contract ServiceConsumer is iServiceClient {
 
     /*
      * @notice Start workflow for minting nft
-     * @param _args String arguments for minting nft
+     * @param method method name
+     * @param _hello arguments
      */
     function helloWorld(
+        string _method,
         string _hello
     )
     external
     {
+        bytes memory methodAndArgs;
+        methodAndArgs = abi.encodePacked(bytes4(keccak256(abi.encodePacked(_method, "(string)"))), abi.encode(_hello));
         sendIServiceRequest(
-            destChainID,
-            endpointAddress,
-            endpointType,
-            _hello,
+            endpointInfo,
+            _method,
+            methodAndArgs,
             address(this),
             this.onHello.selector
         );

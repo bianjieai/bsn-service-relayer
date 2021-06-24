@@ -6,19 +6,17 @@ pragma solidity ^0.4.24;
 interface iServiceInterface {
     /**
      * @dev Send cross chain request
-     * @param _destChainID Target chain address
-     * @param _endpointAddress Target contract address or service bind address
-     * @param _endpointType service/contract/offchain
-     * @param _methodAndArgs Target method name and json string of arguments
+     * @param _endpointInfo information of endpoint
+     * @param _method Target method name
+     * @param _methodAndArgs Target method name and arguments
      * @param _callbackAddress Callback contract address
      * @param _callbackFunction Callback function selector
      * @return requestID Request id
      */
     function sendRequest(
-        string _destChainID,
-        string _endpointAddress,
-        string _endpointType,
-        string _methodAndArgs,
+        string _endpointInfo,
+        string _method,
+        bytes _methodAndArgs,
         address _callbackAddress,
         bytes4 _callbackFunction
     ) external returns (bytes32 requestID);

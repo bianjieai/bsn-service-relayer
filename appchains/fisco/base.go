@@ -23,6 +23,12 @@ type ChainParams struct {
 	IServiceCoreAddr   string `json:"iservice_core_addr"`
 }
 
+type EndpointInfo struct {
+	DestChainID string `json:"dest_chain_id"`
+	EndpointAddress string `json:"endpoint_address"`
+	EndpointType string `json:"endpoint_type"`
+}
+
 // GetChainID returns the unique fisco chain id from the ChainID
 func GetFiscoChainID(ChainID string) int64 {
 	chainInfos := strings.Split(ChainID, "-")

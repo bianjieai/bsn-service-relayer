@@ -48,12 +48,13 @@ type AppChainFactoryI interface {
 // InterchainRequest defines the interchain service request
 type InterchainRequest struct {
 	ID              string // request ID
-	ChainID         string // chain ID
+	SourceChainID   string // source chain ID
 	DestChainID     string // target chain ID
 	EndpointAddress string // end point address
 	EndpointType    string // end point type
-	MethodAndArgs   string // target method name and json string of arguments
-	TxHash          string // transaction hash
+	Method          string // method name
+	MethodAndArgs   []byte // target method name and json string of arguments
+	TxHash          string // source transaction hash
 	Sender          string // message sender
 }
 

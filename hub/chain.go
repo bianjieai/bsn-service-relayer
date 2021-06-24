@@ -11,7 +11,6 @@ import (
 	"relayer/core"
 	"relayer/logging"
 	"relayer/mysql"
-	"strconv"
 	"time"
 )
 
@@ -184,38 +183,25 @@ func (ic IritaHubChain) BuildServiceInvocationRequest(
 	request core.InterchainRequest,
 ) (service.InvokeServiceRequest, error) {
 	serviceFeeCap, err := types.ParseDecCoins(ic.ServiceInfo.ServiceFee)
-	if err != nil {
-		return service.InvokeServiceRequest{}, err
-	}
-	var methodAndArgs MethodAndArgs
-	inputStr,err:= strconv.Unquote("\""+request.MethodAndArgs+"\"")
-	err = json.Unmarshal([]byte(inputStr), &methodAndArgs)
-	if err != nil {
-		return service.InvokeServiceRequest{}, err
-	}
-	ArgsByte, err := json.Marshal(methodAndArgs.Args)
-	if err != nil {
-		return service.InvokeServiceRequest{}, err
-	}
 
 	input := ServiceInput{
 		Header: Header{
 			ReqSequence: request.ID,
-			ChainID:     request.ChainID,
+			ChainID:     request.SourceChainID,
 		},
 		Body: Body{
 			Source: Source{
-				ID:     ic.ChainID,
+				ID:     request.SourceChainID,
 				Sender: request.Sender,
 				TxHash: request.TxHash,
 			},
 			Dest: Dest{
-				ID:              request.ChainID,
+				ID:              request.DestChainID,
 				EndpointType:    request.EndpointType,
 				EndpointAddress: request.EndpointAddress,
 			},
-			method: methodAndArgs.Method,
-			args: string(ArgsByte),
+			method: request.Method,
+			args:   request.MethodAndArgs,
 		},
 	}
 

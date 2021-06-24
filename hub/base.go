@@ -9,7 +9,7 @@ type Body struct {
 	Source `json:"source"`
 	Dest   `json:"dest"`
 	method string `json:"method"`
-	args   string `json:"args"`
+	args   []byte `json:"args"`
 }
 
 type Source struct {
@@ -36,8 +36,3 @@ type ServiceInput struct {
 	Body   `json:"body"`
 }
 
-
-type MethodAndArgs struct {
-	Method string `json:"method"`
-	Args   interface{}  `json:"args"`
-}

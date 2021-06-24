@@ -7,6 +7,7 @@ import "./interfaces/iServiceInterface.sol";
  * @title iService Core Extension contract
  */
 contract iServiceCoreEx is iServiceInterface, Ownable {
+    string private sourseChainID = "fisco-1-1";
     // mapping the request id to Request
     mapping(bytes32 => Request) requests;
 
@@ -30,7 +31,6 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
         address callbackAddress; // callback contract address
         bytes4 functionSelector; // callback function selector
     }
-
     // service response
     struct Response {
         bytes32 id; // response id, equals to request id
@@ -42,18 +42,16 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     /**
      * @dev Event triggered when the request is sent
      * @param _requestID Request id
-     * @param _destChainID Target chain address
-     * @param _endpointAddress Target contract address or service bind address
-     * @param _endpointType service/contract/offchain
-     * @param _methodAndArgs Target method name and arguments
+     * @param _endpointInfo information of endpoint
+     * @param _method Target method name
+     * @param _methodAndArgs abi decode of target method name and arguments
      * @param _sender Message sender
      */
     event CrossChainRequestSent(
         bytes32 _requestID,
-        string _destChainID, //destination chainID
-        string _endpointAddress, // address of the end point
-        string _endpointType, //contract/service
-        string _methodAndArgs, // target method name and json string of arguments
+        string _endpointInfo,
+        string _method,
+        bytes _methodAndArgs, // target method name and json string of arguments
         address _sender
     );
 
@@ -73,21 +71,21 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
      * @dev Make sure that the request is valid
      */
     modifier checkRequest(
-        string _destChainID,
-        string _endpointAddress,
-        string _methodAndArgs
+        string _endpointInfo,
+        string _method,
+        bytes  _methodAndArgs
     ) {
         require(
-            bytes(_destChainID).length > 0,
+            bytes(_endpointInfo).length > 0,
             "iServiceCoreEx: destChainID can not be empty"
         );
         require(
-            bytes(_endpointAddress).length > 0,
-            "iServiceCoreEx: endpointAddress can not be empty"
+            bytes(_method).length > 0,
+            "iServiceCoreEx: method can not be empty"
         );
         require(
-            bytes(_methodAndArgs).length > 0,
-            "iServiceCoreEx: method can not be empty"
+            _methodAndArgs.length > 0,
+            "iServiceCoreEx: methodAndArgs can not be empty"
         );
         _;
     }
@@ -123,35 +121,32 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
 
     /**
      * @dev Send cross chain request
-     * @param _destChainID Target chain address
-     * @param _endpointAddress Target contract address or service bind address
-     * @param _endpointType service/contract/offchain
+     * @param _endpointInfo information of endpoint
+     * @param _method Target method name
      * @param _methodAndArgs Target method name and arguments
      * @param _callbackAddress Callback contract address
      * @param _callbackFunction Callback function selector
      * @return requestID Request id
      */
     function sendRequest(
-        string  _destChainID,
-        string _endpointAddress,
-        string _endpointType,
-        string _methodAndArgs,
+        string _endpointInfo,
+        string _method,
+        bytes _methodAndArgs,
         address _callbackAddress,
         bytes4 _callbackFunction
     )
     external
-    checkRequest(_destChainID, _endpointAddress, _methodAndArgs)
+    checkRequest(_endpointInfo, _method, _methodAndArgs)
     returns (bytes32 requestID)
     {
-        requestID = keccak256(abi.encodePacked(_destChainID, requestCount));
+        requestID = keccak256(abi.encodePacked(sourseChainID, requestCount));
 
         requestCount ++;
 
         emit CrossChainRequestSent(
             requestID,
-            _destChainID,
-            _endpointAddress,
-            _endpointType,
+            _endpointInfo,
+            _method,
             _methodAndArgs,
             msg.sender
         );
@@ -182,6 +177,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
             result = _output;
         }
 
+        requests[_requestID].responded = true;
         bool success =
         cb.callbackAddress.call(
             abi.encodeWithSelector(
