@@ -28,37 +28,7 @@ var (
 )
 
 // IServiceCoreExABI is the input ABI used to generate the binding from.
-const IServiceCoreExABI = "[{\"constant\":false,\"inputs\":[{\"name\":\"_requestID\",\"type\":\"bytes32\"},{\"name\":\"_errMsg\",\"type\":\"string\"},{\"name\":\"_output\",\"type\":\"string\"}],\"name\":\"setResponse\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"requestCount\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_endpointInfo\",\"type\":\"string\"},{\"name\":\"_method\",\"type\":\"string\"},{\"name\":\"_methodAndArgs\",\"type\":\"bytes\"},{\"name\":\"_callbackAddress\",\"type\":\"address\"},{\"name\":\"_callbackFunction\",\"type\":\"bytes4\"}],\"name\":\"sendRequest\",\"outputs\":[{\"name\":\"requestID\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_address\",\"type\":\"address\"}],\"name\":\"setRelayer\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"relayer\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"_relayer\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_requestID\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"_endpointInfo\",\"type\":\"string\"},{\"indexed\":false,\"name\":\"_method\",\"type\":\"string\"},{\"indexed\":false,\"name\":\"_methodAndArgs\",\"type\":\"bytes\"},{\"indexed\":false,\"name\":\"_sender\",\"type\":\"address\"}],\"name\":\"CrossChainRequestSent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"}]"
-
-// IServiceCoreExBin is the compiled bytecode used for deploying new contracts.
-var IServiceCoreExBin = "0x60806040526040805190810160405280600981526020017f666973636f2d312d310000000000000000000000000000000000000000000000815250600190805190602001906200005192919062000247565b503480156200005f57600080fd5b506040516020806200167783398101806040528101908080519060200190929190505050336000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055506000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16600073ffffffffffffffffffffffffffffffffffffffff167f5c7c30d4a0f08950cb23be4132957b357fa5dfdb0fcf218f81b86a1c036e47d060405160405180910390a3600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff16141515620001bd5780600560006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555062000217565b620001d66200021e640100000000026401000000009004565b600560006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055505b50620002f6565b60008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff16905090565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f106200028a57805160ff1916838001178555620002bb565b82800160010185558215620002bb579182015b82811115620002ba5782518255916020019190600101906200029d565b5b509050620002ca9190620002ce565b5090565b620002f391905b80821115620002ef576000816000905550600101620002d5565b5090565b90565b61137180620003066000396000f30060806040526004361061008e576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063161e3b9a1461009357806316cad12a1461010c5780633a938f2d1461014f5780634f8da64f1461017a5780635089e2c81461024a5780637a1f2dea146102a1578063e9667acd146102e4578063ede8e5291461033b575b600080fd5b34801561009f57600080fd5b506100f2600480360381019080803560001916906020019092919080359060200190820180359060200191909192939192939080359060200190820180359060200191909192939192939050505061036a565b604051808215151515815260200191505060405180910390f35b34801561011857600080fd5b5061014d600480360381019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190505050610915565b005b34801561015b57600080fd5b5061016461099d565b6040518082815260200191505060405180910390f35b34801561018657600080fd5b5061022c600480360381019080803590602001908201803590602001919091929391929390803590602001908201803590602001919091929391929390803590602001908201803590602001919091929391929390803573ffffffffffffffffffffffffffffffffffffffff16906020019092919080357bffffffffffffffffffffffffffffffffffffffffffffffffffffffff191690602001909291905050506109a3565b60405180826000191660001916815260200191505060405180910390f35b34801561025657600080fd5b5061025f610e05565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b3480156102ad57600080fd5b506102e2600480360381019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190505050610e2e565b005b3480156102f057600080fd5b506102f9610fb9565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b34801561034757600080fd5b50610350610fdf565b604051808215151515815260200191505060405180910390f35b60006103746112f6565b60606000600560009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff16141515610463576040517fc703cb120000000000000000000000000000000000000000000000000000000081526004018080602001828103825260298152602001807f6953657276696365436f726545783a2073656e646572206973206e6f7420746881526020017f652072656c61796572000000000000000000000000000000000000000000000081525060400191505060405180910390fd5b88600060026000836000191660001916815260200190815260200160002050602060ff16111515610522576040517fc703cb120000000000000000000000000000000000000000000000000000000081526004018080602001828103825260268152602001807f6953657276696365436f726545783a207265717565737420646f6573206e6f7481526020017f206578697374000000000000000000000000000000000000000000000000000081525060400191505060405180910390fd5b6000151560026000836000191660001916815260200190815260200160002060010160009054906101000a900460ff1615151415156105ef576040517fc703cb1200000000000000000000000000000000000000000000000000000000815260040180806020018281038252602a8152602001807f6953657276696365436f726545783a207265717565737420686173206265656e81526020017f20726573706f6e6465640000000000000000000000000000000000000000000081525060400191505060405180910390fd5b600360008b600019166000191681526020019081526020016000206040805190810160405290816000820160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020016000820160149054906101000a90047c0100000000000000000000000000000000000000000000000000000000027bffffffffffffffffffffffffffffffffffffffffffffffffffffffff19167bffffffffffffffffffffffffffffffffffffffffffffffffffffffff191681525050935060008989905011156107245788888080601f016020809104026020016040519081016040528093929190818152602001838380828437820191505050505050925061075a565b86868080601f01602080910402602001604051908101604052809392919081815260200183838082843782019150505050505092505b6001600260008c6000191660001916815260200190815260200160002060010160006101000a81548160ff021916908315150217905550836000015173ffffffffffffffffffffffffffffffffffffffff1684602001518b8560405160240180836000191660001916815260200180602001828103825283818151815260200191508051906020019080838360005b838110156108045780820151818401526020810190506107e9565b50505050905090810190601f1680156108315780820380516001836020036101000a031916815260200191505b509350505050604051602081830303815290604052907bffffffffffffffffffffffffffffffffffffffffffffffffffffffff19166020820180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff838183161783525050505060405180828051906020019080838360005b838110156108c15780820151818401526020810190506108a6565b50505050905090810190601f1680156108ee5780820380516001836020036101000a031916815260200191505b509150506000604051808303816000865af191505091508194505050505095945050505050565b61091d610fdf565b1515610991576040517fc703cb120000000000000000000000000000000000000000000000000000000081526004018080602001828103825260208152602001807f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e657281525060200191505060405180910390fd5b61099a81611036565b50565b60045481565b600088888080601f01602080910402602001604051908101604052809392919081815260200183838082843782019150505050505087878080601f01602080910402602001604051908101604052809392919081815260200183838082843782019150505050505086868080601f01602080910402602001604051908101604052809392919081815260200183838082843782019150505050505060008351111515610add576040517fc703cb1200000000000000000000000000000000000000000000000000000000815260040180806020018281038252602c8152602001807f6953657276696365436f726545783a2064657374436861696e49442063616e2081526020017f6e6f7420626520656d707479000000000000000000000000000000000000000081525060400191505060405180910390fd5b60008251111515610b7c576040517fc703cb120000000000000000000000000000000000000000000000000000000081526004018080602001828103825260278152602001807f6953657276696365436f726545783a206d6574686f642063616e206e6f74206281526020017f6520656d7074790000000000000000000000000000000000000000000000000081525060400191505060405180910390fd5b60008151111515610c1b576040517fc703cb1200000000000000000000000000000000000000000000000000000000815260040180806020018281038252602e8152602001807f6953657276696365436f726545783a206d6574686f64416e644172677320636181526020017f6e206e6f7420626520656d70747900000000000000000000000000000000000081525060400191505060405180910390fd5b60016004546040516020018083805460018160011615610100020316600290048015610c7e5780601f10610c5c576101008083540402835291820191610c7e565b820191906000526020600020905b815481529060010190602001808311610c6a575b5050828152602001925050506040516020818303038152906040526040518082805190602001908083835b602083101515610cce5780518252602082019150602081019050602083039250610ca9565b6001836020036101000a038019825116818451168082178552505050505050905001915050604051809103902093506004600081548092919060010191905055507f413cd07da0b9fe78f365362e5ab26382be0471c5b45a93c1314e100c11f72afa848d8d8d8d8d8d336040518089600019166000191681526020018060200180602001806020018573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200184810384528b8b82818152602001925080828437820191505084810383528989828181526020019250808284378201915050848103825287878281815260200192508082843782019150509b50505050505050505050505060405180910390a1610df38487876111bf565b83935050505098975050505050505050565b60008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff16905090565b610e36610fdf565b1515610eaa576040517fc703cb120000000000000000000000000000000000000000000000000000000081526004018080602001828103825260208152602001807f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e657281525060200191505060405180910390fd5b600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff1614151515610f75576040517fc703cb1200000000000000000000000000000000000000000000000000000000815260040180806020018281038252602f8152602001807f6953657276696365436f726545783a2072656c6179657220616464726573732081526020017f63616e206e6f74206265207a65726f000000000000000000000000000000000081525060400191505060405180910390fd5b80600560006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555050565b600560009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b60008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff1614905090565b600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff1614151515611101576040517fc703cb120000000000000000000000000000000000000000000000000000000081526004018080602001828103825260268152602001807f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206181526020017f646472657373000000000000000000000000000000000000000000000000000081525060400191505060405180910390fd5b8073ffffffffffffffffffffffffffffffffffffffff166000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167f5c7c30d4a0f08950cb23be4132957b357fa5dfdb0fcf218f81b86a1c036e47d060405160405180910390a3806000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555050565b6111c76112f6565b82816000019073ffffffffffffffffffffffffffffffffffffffff16908173ffffffffffffffffffffffffffffffffffffffff16815250508181602001907bffffffffffffffffffffffffffffffffffffffffffffffffffffffff191690817bffffffffffffffffffffffffffffffffffffffffffffffffffffffff1916815250508060036000866000191660001916815260200190815260200160002060008201518160000160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555060208201518160000160146101000a81548163ffffffff02191690837c01000000000000000000000000000000000000000000000000000000009004021790555090505050505050565b6040805190810160405280600073ffffffffffffffffffffffffffffffffffffffff16815260200160007bffffffffffffffffffffffffffffffffffffffffffffffffffffffff1916815250905600a165627a7a72305820cf7586a4f3451a1d4250bb881155b2b7355326de2ddb090e190c09c25dbc45060029"
-
-// DeployIServiceCoreEx deploys a new contract, binding an instance of IServiceCoreEx to it.
-func DeployIServiceCoreEx(auth *bind.TransactOpts, backend bind.ContractBackend, _relayer common.Address) (common.Address, *types.Transaction, *IServiceCoreEx, error) {
-	parsed, err := abi.JSON(strings.NewReader(IServiceCoreExABI))
-	if err != nil {
-		return common.Address{}, nil, nil, err
-	}
-
-	address, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(IServiceCoreExBin), backend, _relayer)
-	if err != nil {
-		return common.Address{}, nil, nil, err
-	}
-	return address, tx, &IServiceCoreEx{IServiceCoreExCaller: IServiceCoreExCaller{contract: contract}, IServiceCoreExTransactor: IServiceCoreExTransactor{contract: contract}, IServiceCoreExFilterer: IServiceCoreExFilterer{contract: contract}}, nil
-}
-
-func AsyncDeployIServiceCoreEx(auth *bind.TransactOpts, handler func(*types.Receipt, error), backend bind.ContractBackend, _relayer common.Address) (*types.Transaction, error) {
-	parsed, err := abi.JSON(strings.NewReader(IServiceCoreExABI))
-	if err != nil {
-		return nil, err
-	}
-
-	tx, err := bind.AsyncDeployContract(auth, handler, parsed, common.FromHex(IServiceCoreExBin), backend, _relayer)
-	if err != nil {
-		return nil, err
-	}
-	return tx, nil
-}
+const IServiceCoreExABI = "[{\"constant\":false,\"inputs\":[{\"name\":\"_requestID\",\"type\":\"bytes32\"},{\"name\":\"_errMsg\",\"type\":\"string\"},{\"name\":\"_output\",\"type\":\"string\"}],\"name\":\"setResponse\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"requestCount\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_endpointInfo\",\"type\":\"string\"},{\"name\":\"_method\",\"type\":\"string\"},{\"name\":\"_callData\",\"type\":\"bytes\"},{\"name\":\"_callbackAddress\",\"type\":\"address\"},{\"name\":\"_callbackFunction\",\"type\":\"bytes4\"}],\"name\":\"sendRequest\",\"outputs\":[{\"name\":\"requestID\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_address\",\"type\":\"address\"}],\"name\":\"setRelayer\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_requestID\",\"type\":\"bytes32\"},{\"name\":\"_callData\",\"type\":\"bytes\"}],\"name\":\"callService\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"relayer\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_icRequestID\",\"type\":\"bytes32\"},{\"name\":\"_endpointAddress\",\"type\":\"address\"},{\"name\":\"_callData\",\"type\":\"bytes\"}],\"name\":\"callService\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"_relayer\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_requestID\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"_endpointInfo\",\"type\":\"string\"},{\"indexed\":false,\"name\":\"_method\",\"type\":\"string\"},{\"indexed\":false,\"name\":\"_methodAndArgs\",\"type\":\"bytes\"},{\"indexed\":false,\"name\":\"_sender\",\"type\":\"address\"}],\"name\":\"CrossChainRequestSent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_icRequestID\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"_result\",\"type\":\"bytes\"}],\"name\":\"CrossChainResponseSent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"}]"
 
 // IServiceCoreEx is an auto generated Go binding around a Solidity contract.
 type IServiceCoreEx struct {
@@ -306,37 +276,103 @@ func (_IServiceCoreEx *IServiceCoreExCallerSession) RequestCount() (*big.Int, er
 	return _IServiceCoreEx.Contract.RequestCount(&_IServiceCoreEx.CallOpts)
 }
 
+// CallService is a paid mutator transaction binding the contract method 0x364c4b79.
+//
+// Solidity: function callService(bytes32 _requestID, bytes _callData) returns(bool)
+func (_IServiceCoreEx *IServiceCoreExTransactor) CallService(opts *bind.TransactOpts, _requestID [32]byte, _callData []byte) (*types.Transaction, *types.Receipt, error) {
+	return _IServiceCoreEx.contract.Transact(opts, "callService", _requestID, _callData)
+}
+
+func (_IServiceCoreEx *IServiceCoreExTransactor) AsyncCallService(handler func(*types.Receipt, error), opts *bind.TransactOpts, _requestID [32]byte, _callData []byte) (*types.Transaction, error) {
+	return _IServiceCoreEx.contract.AsyncTransact(opts, handler, "callService", _requestID, _callData)
+}
+
+// CallService is a paid mutator transaction binding the contract method 0x364c4b79.
+//
+// Solidity: function callService(bytes32 _requestID, bytes _callData) returns(bool)
+func (_IServiceCoreEx *IServiceCoreExSession) CallService(_requestID [32]byte, _callData []byte) (*types.Transaction, *types.Receipt, error) {
+	return _IServiceCoreEx.Contract.CallService(&_IServiceCoreEx.TransactOpts, _requestID, _callData)
+}
+
+func (_IServiceCoreEx *IServiceCoreExSession) AsyncCallService(handler func(*types.Receipt, error), _requestID [32]byte, _callData []byte) (*types.Transaction, error) {
+	return _IServiceCoreEx.Contract.AsyncCallService(handler, &_IServiceCoreEx.TransactOpts, _requestID, _callData)
+}
+
+// CallService is a paid mutator transaction binding the contract method 0x364c4b79.
+//
+// Solidity: function callService(bytes32 _requestID, bytes _callData) returns(bool)
+func (_IServiceCoreEx *IServiceCoreExTransactorSession) CallService(_requestID [32]byte, _callData []byte) (*types.Transaction, *types.Receipt, error) {
+	return _IServiceCoreEx.Contract.CallService(&_IServiceCoreEx.TransactOpts, _requestID, _callData)
+}
+
+func (_IServiceCoreEx *IServiceCoreExTransactorSession) AsyncCallService(handler func(*types.Receipt, error), _requestID [32]byte, _callData []byte) (*types.Transaction, error) {
+	return _IServiceCoreEx.Contract.AsyncCallService(handler, &_IServiceCoreEx.TransactOpts, _requestID, _callData)
+}
+
+// CallService0 is a paid mutator transaction binding the contract method 0x75d219fa.
+//
+// Solidity: function callService(bytes32 _icRequestID, address _endpointAddress, bytes _callData) returns()
+func (_IServiceCoreEx *IServiceCoreExTransactor) CallService0(opts *bind.TransactOpts, _icRequestID [32]byte, _endpointAddress common.Address, _callData []byte) (*types.Transaction, *types.Receipt, error) {
+	return _IServiceCoreEx.contract.Transact(opts, "callService0", _icRequestID, _endpointAddress, _callData)
+}
+
+func (_IServiceCoreEx *IServiceCoreExTransactor) AsyncCallService0(handler func(*types.Receipt, error), opts *bind.TransactOpts, _icRequestID [32]byte, _endpointAddress common.Address, _callData []byte) (*types.Transaction, error) {
+	return _IServiceCoreEx.contract.AsyncTransact(opts, handler, "callService0", _icRequestID, _endpointAddress, _callData)
+}
+
+// CallService0 is a paid mutator transaction binding the contract method 0x75d219fa.
+//
+// Solidity: function callService(bytes32 _icRequestID, address _endpointAddress, bytes _callData) returns()
+func (_IServiceCoreEx *IServiceCoreExSession) CallService0(_icRequestID [32]byte, _endpointAddress common.Address, _callData []byte) (*types.Transaction, *types.Receipt, error) {
+	return _IServiceCoreEx.Contract.CallService0(&_IServiceCoreEx.TransactOpts, _icRequestID, _endpointAddress, _callData)
+}
+
+func (_IServiceCoreEx *IServiceCoreExSession) AsyncCallService0(handler func(*types.Receipt, error), _icRequestID [32]byte, _endpointAddress common.Address, _callData []byte) (*types.Transaction, error) {
+	return _IServiceCoreEx.Contract.AsyncCallService0(handler, &_IServiceCoreEx.TransactOpts, _icRequestID, _endpointAddress, _callData)
+}
+
+// CallService0 is a paid mutator transaction binding the contract method 0x75d219fa.
+//
+// Solidity: function callService(bytes32 _icRequestID, address _endpointAddress, bytes _callData) returns()
+func (_IServiceCoreEx *IServiceCoreExTransactorSession) CallService0(_icRequestID [32]byte, _endpointAddress common.Address, _callData []byte) (*types.Transaction, *types.Receipt, error) {
+	return _IServiceCoreEx.Contract.CallService0(&_IServiceCoreEx.TransactOpts, _icRequestID, _endpointAddress, _callData)
+}
+
+func (_IServiceCoreEx *IServiceCoreExTransactorSession) AsyncCallService0(handler func(*types.Receipt, error), _icRequestID [32]byte, _endpointAddress common.Address, _callData []byte) (*types.Transaction, error) {
+	return _IServiceCoreEx.Contract.AsyncCallService0(handler, &_IServiceCoreEx.TransactOpts, _icRequestID, _endpointAddress, _callData)
+}
+
 // SendRequest is a paid mutator transaction binding the contract method 0x1bd75284.
 //
-// Solidity: function sendRequest(string _endpointInfo, string _method, bytes _methodAndArgs, address _callbackAddress, bytes4 _callbackFunction) returns(bytes32 requestID)
-func (_IServiceCoreEx *IServiceCoreExTransactor) SendRequest(opts *bind.TransactOpts, _endpointInfo string, _method string, _methodAndArgs []byte, _callbackAddress common.Address, _callbackFunction [4]byte) (*types.Transaction, *types.Receipt, error) {
-	return _IServiceCoreEx.contract.Transact(opts, "sendRequest", _endpointInfo, _method, _methodAndArgs, _callbackAddress, _callbackFunction)
+// Solidity: function sendRequest(string _endpointInfo, string _method, bytes _callData, address _callbackAddress, bytes4 _callbackFunction) returns(bytes32 requestID)
+func (_IServiceCoreEx *IServiceCoreExTransactor) SendRequest(opts *bind.TransactOpts, _endpointInfo string, _method string, _callData []byte, _callbackAddress common.Address, _callbackFunction [4]byte) (*types.Transaction, *types.Receipt, error) {
+	return _IServiceCoreEx.contract.Transact(opts, "sendRequest", _endpointInfo, _method, _callData, _callbackAddress, _callbackFunction)
 }
 
-func (_IServiceCoreEx *IServiceCoreExTransactor) AsyncSendRequest(handler func(*types.Receipt, error), opts *bind.TransactOpts, _endpointInfo string, _method string, _methodAndArgs []byte, _callbackAddress common.Address, _callbackFunction [4]byte) (*types.Transaction, error) {
-	return _IServiceCoreEx.contract.AsyncTransact(opts, handler, "sendRequest", _endpointInfo, _method, _methodAndArgs, _callbackAddress, _callbackFunction)
-}
-
-// SendRequest is a paid mutator transaction binding the contract method 0x1bd75284.
-//
-// Solidity: function sendRequest(string _endpointInfo, string _method, bytes _methodAndArgs, address _callbackAddress, bytes4 _callbackFunction) returns(bytes32 requestID)
-func (_IServiceCoreEx *IServiceCoreExSession) SendRequest(_endpointInfo string, _method string, _methodAndArgs []byte, _callbackAddress common.Address, _callbackFunction [4]byte) (*types.Transaction, *types.Receipt, error) {
-	return _IServiceCoreEx.Contract.SendRequest(&_IServiceCoreEx.TransactOpts, _endpointInfo, _method, _methodAndArgs, _callbackAddress, _callbackFunction)
-}
-
-func (_IServiceCoreEx *IServiceCoreExSession) AsyncSendRequest(handler func(*types.Receipt, error), _endpointInfo string, _method string, _methodAndArgs []byte, _callbackAddress common.Address, _callbackFunction [4]byte) (*types.Transaction, error) {
-	return _IServiceCoreEx.Contract.AsyncSendRequest(handler, &_IServiceCoreEx.TransactOpts, _endpointInfo, _method, _methodAndArgs, _callbackAddress, _callbackFunction)
+func (_IServiceCoreEx *IServiceCoreExTransactor) AsyncSendRequest(handler func(*types.Receipt, error), opts *bind.TransactOpts, _endpointInfo string, _method string, _callData []byte, _callbackAddress common.Address, _callbackFunction [4]byte) (*types.Transaction, error) {
+	return _IServiceCoreEx.contract.AsyncTransact(opts, handler, "sendRequest", _endpointInfo, _method, _callData, _callbackAddress, _callbackFunction)
 }
 
 // SendRequest is a paid mutator transaction binding the contract method 0x1bd75284.
 //
-// Solidity: function sendRequest(string _endpointInfo, string _method, bytes _methodAndArgs, address _callbackAddress, bytes4 _callbackFunction) returns(bytes32 requestID)
-func (_IServiceCoreEx *IServiceCoreExTransactorSession) SendRequest(_endpointInfo string, _method string, _methodAndArgs []byte, _callbackAddress common.Address, _callbackFunction [4]byte) (*types.Transaction, *types.Receipt, error) {
-	return _IServiceCoreEx.Contract.SendRequest(&_IServiceCoreEx.TransactOpts, _endpointInfo, _method, _methodAndArgs, _callbackAddress, _callbackFunction)
+// Solidity: function sendRequest(string _endpointInfo, string _method, bytes _callData, address _callbackAddress, bytes4 _callbackFunction) returns(bytes32 requestID)
+func (_IServiceCoreEx *IServiceCoreExSession) SendRequest(_endpointInfo string, _method string, _callData []byte, _callbackAddress common.Address, _callbackFunction [4]byte) (*types.Transaction, *types.Receipt, error) {
+	return _IServiceCoreEx.Contract.SendRequest(&_IServiceCoreEx.TransactOpts, _endpointInfo, _method, _callData, _callbackAddress, _callbackFunction)
 }
 
-func (_IServiceCoreEx *IServiceCoreExTransactorSession) AsyncSendRequest(handler func(*types.Receipt, error), _endpointInfo string, _method string, _methodAndArgs []byte, _callbackAddress common.Address, _callbackFunction [4]byte) (*types.Transaction, error) {
-	return _IServiceCoreEx.Contract.AsyncSendRequest(handler, &_IServiceCoreEx.TransactOpts, _endpointInfo, _method, _methodAndArgs, _callbackAddress, _callbackFunction)
+func (_IServiceCoreEx *IServiceCoreExSession) AsyncSendRequest(handler func(*types.Receipt, error), _endpointInfo string, _method string, _callData []byte, _callbackAddress common.Address, _callbackFunction [4]byte) (*types.Transaction, error) {
+	return _IServiceCoreEx.Contract.AsyncSendRequest(handler, &_IServiceCoreEx.TransactOpts, _endpointInfo, _method, _callData, _callbackAddress, _callbackFunction)
+}
+
+// SendRequest is a paid mutator transaction binding the contract method 0x1bd75284.
+//
+// Solidity: function sendRequest(string _endpointInfo, string _method, bytes _callData, address _callbackAddress, bytes4 _callbackFunction) returns(bytes32 requestID)
+func (_IServiceCoreEx *IServiceCoreExTransactorSession) SendRequest(_endpointInfo string, _method string, _callData []byte, _callbackAddress common.Address, _callbackFunction [4]byte) (*types.Transaction, *types.Receipt, error) {
+	return _IServiceCoreEx.Contract.SendRequest(&_IServiceCoreEx.TransactOpts, _endpointInfo, _method, _callData, _callbackAddress, _callbackFunction)
+}
+
+func (_IServiceCoreEx *IServiceCoreExTransactorSession) AsyncSendRequest(handler func(*types.Receipt, error), _endpointInfo string, _method string, _callData []byte, _callbackAddress common.Address, _callbackFunction [4]byte) (*types.Transaction, error) {
+	return _IServiceCoreEx.Contract.AsyncSendRequest(handler, &_IServiceCoreEx.TransactOpts, _endpointInfo, _method, _callData, _callbackAddress, _callbackFunction)
 }
 
 // SetRelayer is a paid mutator transaction binding the contract method 0x6548e9bc.
@@ -570,6 +606,140 @@ func (_IServiceCoreEx *IServiceCoreExFilterer) WatchCrossChainRequestSent(opts *
 func (_IServiceCoreEx *IServiceCoreExFilterer) ParseCrossChainRequestSent(log types.Log) (*IServiceCoreExCrossChainRequestSent, error) {
 	event := new(IServiceCoreExCrossChainRequestSent)
 	if err := _IServiceCoreEx.contract.UnpackLog(event, "CrossChainRequestSent", log); err != nil {
+		return nil, err
+	}
+	return event, nil
+}
+
+// IServiceCoreExCrossChainResponseSentIterator is returned from FilterCrossChainResponseSent and is used to iterate over the raw logs and unpacked data for CrossChainResponseSent events raised by the IServiceCoreEx contract.
+type IServiceCoreExCrossChainResponseSentIterator struct {
+	Event *IServiceCoreExCrossChainResponseSent // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IServiceCoreExCrossChainResponseSentIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IServiceCoreExCrossChainResponseSent)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IServiceCoreExCrossChainResponseSent)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IServiceCoreExCrossChainResponseSentIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IServiceCoreExCrossChainResponseSentIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IServiceCoreExCrossChainResponseSent represents a CrossChainResponseSent event raised by the IServiceCoreEx contract.
+type IServiceCoreExCrossChainResponseSent struct {
+	IcRequestID [32]byte
+	Result      []byte
+	Raw         types.Log // Blockchain specific contextual infos
+}
+
+// FilterCrossChainResponseSent is a free log retrieval operation binding the contract event 0xdd9b7291a69fc50c9dbd1ee123efce8f2f5086ebe46cea5855a5331b2eb6df4c.
+//
+// Solidity: event CrossChainResponseSent(bytes32 _icRequestID, bytes _result)
+func (_IServiceCoreEx *IServiceCoreExFilterer) FilterCrossChainResponseSent(opts *bind.FilterOpts) (*IServiceCoreExCrossChainResponseSentIterator, error) {
+
+	logs, sub, err := _IServiceCoreEx.contract.FilterLogs(opts, "CrossChainResponseSent")
+	if err != nil {
+		return nil, err
+	}
+	return &IServiceCoreExCrossChainResponseSentIterator{contract: _IServiceCoreEx.contract, event: "CrossChainResponseSent", logs: logs, sub: sub}, nil
+}
+
+// WatchCrossChainResponseSent is a free log subscription operation binding the contract event 0xdd9b7291a69fc50c9dbd1ee123efce8f2f5086ebe46cea5855a5331b2eb6df4c.
+//
+// Solidity: event CrossChainResponseSent(bytes32 _icRequestID, bytes _result)
+func (_IServiceCoreEx *IServiceCoreExFilterer) WatchCrossChainResponseSent(opts *bind.WatchOpts, sink chan<- *IServiceCoreExCrossChainResponseSent) (event.Subscription, error) {
+
+	logs, sub, err := _IServiceCoreEx.contract.WatchLogs(opts, "CrossChainResponseSent")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IServiceCoreExCrossChainResponseSent)
+				if err := _IServiceCoreEx.contract.UnpackLog(event, "CrossChainResponseSent", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseCrossChainResponseSent is a log parse operation binding the contract event 0xdd9b7291a69fc50c9dbd1ee123efce8f2f5086ebe46cea5855a5331b2eb6df4c.
+//
+// Solidity: event CrossChainResponseSent(bytes32 _icRequestID, bytes _result)
+func (_IServiceCoreEx *IServiceCoreExFilterer) ParseCrossChainResponseSent(log types.Log) (*IServiceCoreExCrossChainResponseSent, error) {
+	event := new(IServiceCoreExCrossChainResponseSent)
+	if err := _IServiceCoreEx.contract.UnpackLog(event, "CrossChainResponseSent", log); err != nil {
 		return nil, err
 	}
 	return event, nil

@@ -32,4 +32,15 @@ interface iServiceInterface {
         string  _errMsg,
         string  _output
     ) external returns (bool);
+
+
+    /**
+     * @dev call service/contract in dest chain
+     * @param _requestID Request id
+     * @param _callData call data from source chain
+     */
+    function callService(
+        bytes32 _requestID,
+        bytes  _callData
+    ) external returns (bool);
 }

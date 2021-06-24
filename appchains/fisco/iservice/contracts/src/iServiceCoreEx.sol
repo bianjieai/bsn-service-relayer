@@ -8,11 +8,14 @@ import "./interfaces/iServiceInterface.sol";
  */
 contract iServiceCoreEx is iServiceInterface, Ownable {
     string private sourseChainID = "fisco-1-1";
-    // mapping the request id to Request
-    mapping(bytes32 => Request) requests;
+    // if the request has been response,the request id will mapped to true
+    mapping(bytes32 => bool) requests;
 
     // mapping the request id to Callback
     mapping(bytes32 => Callback) callbacks;
+
+    // if the icRequest has been received in dest chain,the icRequest id will mapped to true
+    mapping(bytes32 => bool) icRequests;
 
     // global request count
     uint256 public requestCount;
@@ -20,24 +23,11 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     // address allowed to relay the interchain requests
     address public relayer;
 
-    // service request
-    struct Request {
-        bytes32 id; // request id
-        bool responded; // if request has been responded
-    }
-
     // request callback
     struct Callback {
         address callbackAddress; // callback contract address
         bytes4 functionSelector; // callback function selector
     }
-    // service response
-    struct Response {
-        bytes32 id; // response id, equals to request id
-        string errMsg; // error message of the service invocation
-        string output; // response output
-    }
-
 
     /**
      * @dev Event triggered when the request is sent
@@ -53,6 +43,16 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
         string _method,
         bytes _methodAndArgs, // target method name and json string of arguments
         address _sender
+    );
+
+    /**
+    * @dev Event triggered when the request is sent
+    * @param _icRequestID Request id
+    * @param _result result bytes
+    */
+    event CrossChainResponseSent(
+        bytes32 _icRequestID,
+        bytes   _result
     );
 
     /**
@@ -91,17 +91,26 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
-     * @dev Make sure that the request exists and has not been responded
+     * @dev Make sure that the request has not been responded
      * @param _requestID Request id
      */
     modifier validateRequest(bytes32 _requestID) {
         require(
-            requests[_requestID].id.length > 0,
-            "iServiceCoreEx: request does not exist"
-        );
-        require(
-            requests[_requestID].responded == false,
+            requests[_requestID] == false,
             "iServiceCoreEx: request has been responded"
+        );
+
+        _;
+    }
+
+    /**
+    * @dev Make sure that the icRequest  has not been responded
+    * @param _icRequestID Request id
+    */
+    modifier validateIcRequest(bytes32 _icRequestID) {
+        require(
+            icRequests[_icRequestID] == false,
+            "iServiceCoreEx: icRequest has been received"
         );
 
         _;
@@ -123,7 +132,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
      * @dev Send cross chain request
      * @param _endpointInfo information of endpoint
      * @param _method Target method name
-     * @param _methodAndArgs Target method name and arguments
+     * @param _callData Target method callData
      * @param _callbackAddress Callback contract address
      * @param _callbackFunction Callback function selector
      * @return requestID Request id
@@ -131,12 +140,12 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     function sendRequest(
         string _endpointInfo,
         string _method,
-        bytes _methodAndArgs,
+        bytes _callData,
         address _callbackAddress,
         bytes4 _callbackFunction
     )
     external
-    checkRequest(_endpointInfo, _method, _methodAndArgs)
+    checkRequest(_endpointInfo, _method, _callData)
     returns (bytes32 requestID)
     {
         requestID = keccak256(abi.encodePacked(sourseChainID, requestCount));
@@ -147,11 +156,12 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
             requestID,
             _endpointInfo,
             _method,
-            _methodAndArgs,
+            _callData,
             msg.sender
         );
 
         _saveRequestCallback(requestID, _callbackAddress, _callbackFunction);
+        requests[requestID] = false;
         return requestID;
     }
 
@@ -177,7 +187,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
             result = _output;
         }
 
-        requests[_requestID].responded = true;
+        requests[_requestID] = true;
         bool success =
         cb.callbackAddress.call(
             abi.encodeWithSelector(
@@ -191,6 +201,55 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     }
 
     /**
+     * @dev call service/contract in dest chain
+     * @param _icRequestID Request id
+     * @param _endpointAddress endpointAddress
+     * @param _callData call data from source chain
+     */
+    function callService(
+        bytes32 _icRequestID,
+        address _endpointAddress,
+        bytes  _callData
+    ) public validateIcRequest(_icRequestID){
+        uint callDataLength = _callData.length;
+        bytes memory result;
+        uint success;
+        assembly {
+        // call
+            let d := add(_callData, 32)
+            success := call(
+            gas(),
+            _endpointAddress,
+            callvalue,
+            d,
+            callDataLength,
+            0,
+            0
+            )
+
+        // handle result
+            switch success
+            case 1 {
+                let size := returndatasize
+                result := mload(0x40)
+                mstore(0x40, add(result, and(add(add(size, 0x20), 0x1f), not(0x1f))))
+                mstore(result, size)
+                returndatacopy(add(result, 0x20), 0, size)
+            }
+            case 0 {
+            // call failed and revert
+                revert(0, 0)
+            }
+        }
+        if(success == 1){
+            emit CrossChainResponseSent(
+                _icRequestID,
+                result
+            );
+        }
+    }
+
+    /**
      * @notice Set the relayer address
      * @param _address Relayer address
      */
@@ -200,17 +259,6 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
             "iServiceCoreEx: relayer address can not be zero"
         );
         relayer = _address;
-    }
-
-    function _saveRequest(
-        bytes32 _requestID
-    ) internal {
-        Request memory req;
-
-        req.id = _requestID;
-        req.responded = false;
-
-        requests[_requestID] = req;
     }
 
     /**
