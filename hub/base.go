@@ -8,8 +8,8 @@ type Header struct {
 type Body struct {
 	Source `json:"source"`
 	Dest   `json:"dest"`
-	method string `json:"method"`
-	args   []byte `json:"args"`
+	Method string `json:"method"`
+	CallData   []byte `json:"args"`
 }
 
 type Source struct {
