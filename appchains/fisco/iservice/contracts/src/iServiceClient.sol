@@ -8,7 +8,7 @@ interface iServiceInterface {
      * @dev Send cross chain request
      * @param _endpointInfo information of endpoint
      * @param _method Target method name
-     * @param _methodAndArgs Target method name and arguments
+     * @param _callData Target method callData
      * @param _callbackAddress Callback contract address
      * @param _callbackFunction Callback function selector
      * @return requestID Request id
@@ -16,7 +16,7 @@ interface iServiceInterface {
     function sendRequest(
         string _endpointInfo,
         string _method,
-        bytes _methodAndArgs,
+        bytes _callData,
         address _callbackAddress,
         bytes4 _callbackFunction
     ) external returns (bytes32 requestID);
@@ -26,11 +26,12 @@ interface iServiceInterface {
      * @param _requestID Request id
      * @param _errMsg Error message of the service invocation
      * @param _output Response output
+     * @return True on success, false otherwise
      */
     function setResponse(
         bytes32 _requestID,
-        string  _errMsg,
-        string  _output
+        string _errMsg,
+        string _output
     ) external returns (bool);
 }
 
@@ -73,7 +74,7 @@ contract iServiceClient {
      * @dev Send cross chain request
      * @param _endpointInfo information of endpoint
      * @param _method Target method name
-     * @param _methodAndArgs Target method name and arguments
+     * @param _callData Target method callData
      * @param _callbackAddress Callback contract address
      * @param _callbackFunction Callback function selector
      * @return requestID Request id
@@ -81,16 +82,16 @@ contract iServiceClient {
     function sendIServiceRequest(
         string _endpointInfo,
         string _method,
-        bytes _methodAndArgs,
+        bytes _callData,
         address _callbackAddress,
         bytes4 _callbackFunction
     )
     internal
     returns (bytes32 requestID)
     {
-        requestID = iServiceCore.sendRequest(_endpointInfo, _method, _methodAndArgs, address(this), this.onResponse.selector);
+        requestID = iServiceCore.sendRequest(_endpointInfo, _method, _callData, address(this), this.onResponse.selector);
 
-        Request memory request = Request(
+        Request memory request = Request{
             _callbackAddress,
             _callbackFunction,
             true,
@@ -116,8 +117,6 @@ contract iServiceClient {
     external
     validRequest(_requestID)
     {
-        requests[_requestID].responded = true;
-
         address cbAddr = requests[_requestID].callbackAddress;
         bytes4 cbFunc = requests[_requestID].callbackFunction;
 
@@ -139,10 +138,9 @@ contract iServiceClient {
  * The service is supported by price service
  */
 contract ServiceConsumer is iServiceClient {
-    string private endpointInfo = "{\"dest_chain_id\":\"fisco-1-1\",\"endpoint_address\":\"0xe9708c47B560AC923E5a9096669fC71E8bD771Cb\",\"endpoint_type\":\"contract\"}";
-    string public helloMsg;
-
+    string private endpointInfo = "{\"dest_chain_id\":\"fisco-1-1\",\"endpoint_address\":\"0x9e629d97854a80c3e4c3971acaa46edd43f81a52\",\"endpoint_type\":\"contract\"}";
     event Hello(bytes32 _requestID, string _helloMsg);
+    string public result;
     /*
      * @notice Constructor
      * @param _iServiceContract Address of the iService contract
@@ -158,7 +156,7 @@ contract ServiceConsumer is iServiceClient {
 
     /*
      * @notice Start workflow for minting nft
-     * @param method method name
+     * @param _method method name
      * @param _hello arguments
      */
     function helloWorld(
@@ -167,12 +165,12 @@ contract ServiceConsumer is iServiceClient {
     )
     external
     {
-        bytes memory methodAndArgs;
-        methodAndArgs = abi.encodePacked(bytes4(keccak256(abi.encodePacked(_method, "(string)"))), abi.encode(_hello));
+        bytes memory callData;
+        callData = abi.encodePacked(bytes4(keccak256(abi.encodePacked(_method, "(string)"))), abi.encode(_hello));
         sendIServiceRequest(
             endpointInfo,
             _method,
-            methodAndArgs,
+            callData,
             address(this),
             this.onHello.selector
         );
@@ -190,7 +188,8 @@ contract ServiceConsumer is iServiceClient {
     external
     validRequest(_requestID)
     {
-        emit Hello(_requestID, _output);
+        requests[_requestID].responded = true;
+        result = _output;
     }
 }
 

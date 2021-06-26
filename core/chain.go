@@ -53,7 +53,7 @@ type InterchainRequest struct {
 	EndpointAddress string // end point address
 	EndpointType    string // end point type
 	Method          string // method name
-	MethodAndArgs   []byte // target method name and json string of arguments
+	CallData        []byte // target method name and json string of arguments
 	TxHash          string // source transaction hash
 	Sender          string // message sender
 }

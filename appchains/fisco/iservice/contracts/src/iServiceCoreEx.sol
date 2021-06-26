@@ -34,14 +34,15 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
      * @param _requestID Request id
      * @param _endpointInfo information of endpoint
      * @param _method Target method name
-     * @param _methodAndArgs abi decode of target method name and arguments
+     * @param _callData abi decode of target method name and arguments
      * @param _sender Message sender
      */
     event CrossChainRequestSent(
+        string _eventName,
         bytes32 _requestID,
         string _endpointInfo,
         string _method,
-        bytes _methodAndArgs, // target method name and json string of arguments
+        bytes _callData, // target method name and json string of arguments
         address _sender
     );
 
@@ -51,6 +52,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     * @param _result result bytes
     */
     event CrossChainResponseSent(
+        string _eventName,
         bytes32 _icRequestID,
         bytes   _result
     );
@@ -73,7 +75,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     modifier checkRequest(
         string _endpointInfo,
         string _method,
-        bytes  _methodAndArgs
+        bytes  _callData
     ) {
         require(
             bytes(_endpointInfo).length > 0,
@@ -84,8 +86,8 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
             "iServiceCoreEx: method can not be empty"
         );
         require(
-            _methodAndArgs.length > 0,
-            "iServiceCoreEx: methodAndArgs can not be empty"
+            _callData.length > 0,
+            "iServiceCoreEx: callData can not be empty"
         );
         _;
     }
@@ -153,6 +155,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
         requestCount ++;
 
         emit CrossChainRequestSent(
+            "CrossChainRequestSent",
             requestID,
             _endpointInfo,
             _method,
@@ -243,6 +246,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
         }
         if(success == 1){
             emit CrossChainResponseSent(
+                "CrossChainResponseSent",
                 _icRequestID,
                 result
             );

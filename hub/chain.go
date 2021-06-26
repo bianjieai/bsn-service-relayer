@@ -201,7 +201,7 @@ func (ic IritaHubChain) BuildServiceInvocationRequest(
 				EndpointAddress: request.EndpointAddress,
 			},
 			Method: request.Method,
-			CallData:   request.MethodAndArgs,
+			CallData:   request.CallData,
 		},
 	}
 

@@ -8,7 +8,7 @@ interface iServiceInterface {
      * @dev Send cross chain request
      * @param _endpointInfo information of endpoint
      * @param _method Target method name
-     * @param _methodAndArgs Target method name and arguments
+     * @param _callData Target method callData
      * @param _callbackAddress Callback contract address
      * @param _callbackFunction Callback function selector
      * @return requestID Request id
@@ -16,7 +16,7 @@ interface iServiceInterface {
     function sendRequest(
         string _endpointInfo,
         string _method,
-        bytes _methodAndArgs,
+        bytes _callData,
         address _callbackAddress,
         bytes4 _callbackFunction
     ) external returns (bytes32 requestID);
@@ -26,10 +26,11 @@ interface iServiceInterface {
      * @param _requestID Request id
      * @param _errMsg Error message of the service invocation
      * @param _output Response output
+     * @return True on success, false otherwise
      */
     function setResponse(
         bytes32 _requestID,
-        string  _errMsg,
-        string  _output
+        string _errMsg,
+        string _output
     ) external returns (bool);
 }

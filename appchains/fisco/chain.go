@@ -199,7 +199,7 @@ func (f *FISCOChain) buildInterchainRequest(e *iservice.IServiceCoreExCrossChain
 		EndpointAddress: endpointInfo.EndpointAddress,
 		EndpointType:    endpointInfo.EndpointType,
 		Method:          e.Method,
-		MethodAndArgs:   e.MethodAndArgs,
+		CallData:        e.CallData,
 		Sender:          e.Sender.String(),
 	}
 }
@@ -335,6 +335,9 @@ func (f *FISCOChain) parseCrossChaiRequestSentEvents(receipt *types.Receipt) {
 		err = f.IServiceCoreABI.Unpack(&event, "CrossChainRequestSent", data)
 		if err != nil {
 			logging.Logger.Errorf("failed to unpack the log data: %s", err)
+			continue
+		}
+		if event.EventName == "CrossChainResponseSent"{
 			continue
 		}
 
