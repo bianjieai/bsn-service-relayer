@@ -91,7 +91,7 @@ contract iServiceClient {
     {
         requestID = iServiceCore.sendRequest(_endpointInfo, _method, _callData, address(this), this.onResponse.selector);
 
-        Request memory request = Request{
+        Request memory request = Request(
             _callbackAddress,
             _callbackFunction,
             true,
