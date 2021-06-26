@@ -7,7 +7,7 @@ import "./interfaces/iServiceInterface.sol";
  * @title iService Core Extension contract
  */
 contract iServiceCoreEx is iServiceInterface, Ownable {
-    string private sourseChainID = "fisco-1-1";
+    string private sourceChainID ;
     // if the request has been response,the request id will mapped to true
     mapping(bytes32 => bool) requests;
 
@@ -54,14 +54,15 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     event CrossChainResponseSent(
         string _eventName,
         bytes32 _icRequestID,
-        bytes   _result
+        bytes _result
     );
 
     /**
      * @dev Constructor
      * @param _relayer Relayer address
      */
-    constructor(address _relayer) public Ownable() {
+    constructor(address _relayer, string _sourceChainID) public Ownable() {
+        sourceChainID = _sourceChainID;
         if (_relayer != address(0)) {
             relayer = _relayer;
         } else {
@@ -75,7 +76,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     modifier checkRequest(
         string _endpointInfo,
         string _method,
-        bytes  _callData
+        bytes _callData
     ) {
         require(
             bytes(_endpointInfo).length > 0,
@@ -184,9 +185,9 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
 
         string memory result;
 
-        if(bytes(_errMsg).length > 0){
+        if (bytes(_errMsg).length > 0) {
             result = _errMsg;
-        }else{
+        } else {
             result = _output;
         }
 
@@ -212,8 +213,8 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     function callService(
         bytes32 _icRequestID,
         address _endpointAddress,
-        bytes  _callData
-    ) public validateIcRequest(_icRequestID){
+        bytes _callData
+    ) public validateIcRequest(_icRequestID) {
         uint callDataLength = _callData.length;
         bytes memory result;
         uint success;
@@ -221,13 +222,13 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
         // call
             let d := add(_callData, 32)
             success := call(
-            gas(),
-            _endpointAddress,
-            callvalue,
-            d,
-            callDataLength,
-            0,
-            0
+                gas(),
+                _endpointAddress,
+                callvalue,
+                d,
+                callDataLength,
+                0,
+                0
             )
 
         // handle result
@@ -244,7 +245,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
                 revert(0, 0)
             }
         }
-        if(success == 1){
+        if (success == 1) {
             emit CrossChainResponseSent(
                 "CrossChainResponseSent",
                 _icRequestID,
