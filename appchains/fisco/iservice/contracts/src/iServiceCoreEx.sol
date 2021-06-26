@@ -151,7 +151,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     checkRequest(_endpointInfo, _method, _callData)
     returns (bytes32 requestID)
     {
-        requestID = keccak256(abi.encodePacked(sourseChainID, requestCount));
+        requestID = keccak256(abi.encodePacked(sourceChainID, requestCount));
 
         requestCount ++;
 
