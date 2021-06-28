@@ -337,9 +337,6 @@ func (f *FISCOChain) parseCrossChaiRequestSentEvents(receipt *types.Receipt) {
 			logging.Logger.Errorf("failed to unpack the log data: %s", err)
 			continue
 		}
-		if event.EventName == "CrossChainResponseSent"{
-			continue
-		}
 
 		request := f.buildInterchainRequest(&event)
 		f.handler(f.ChainID, request, receipt.TransactionHash)

@@ -133,4 +133,64 @@ contract iServiceClient {
     }
 }
 
+/*
+ * @title Contract for inter-chain NFT minting powered by iService
+ * The service is supported by price service
+ */
+contract ServiceConsumer is iServiceClient {
+    string private endpointInfo = "{\"dest_chain_id\":\"fisco-1-1\",\"endpoint_address\":\"0x9e629d97854a80c3e4c3971acaa46edd43f81a52\",\"endpoint_type\":\"contract\"}";
+    event Hello(bytes32 _requestID, string _helloMsg);
+    string public result;
+    /*
+     * @notice Constructor
+     * @param _iServiceContract Address of the iService contract
+     * @param _defaultTimeout Default service request timeout
+     */
+    constructor(
+        address _iServiceCore
+    )
+    public
+    {
+        setIServiceCore(_iServiceCore);
+    }
+
+    /*
+     * @notice Start workflow for minting nft
+     * @param _method method name
+     * @param _hello arguments
+     */
+    function helloWorld(
+        string _method,
+        string _hello
+    )
+    external
+    {
+        bytes memory callData;
+        callData = abi.encodePacked(bytes4(keccak256(abi.encodePacked(_method, "(string)"))), abi.encode(_hello));
+        sendIServiceRequest(
+            endpointInfo,
+            _method,
+            callData,
+            address(this),
+            this.onHello.selector
+        );
+    }
+
+    /*
+     * @notice NFT service callback function
+     * @param _requestID Request id
+     * @param _output NFT service response output
+     */
+    function onHello(
+        bytes32 _requestID,
+        string _output
+    )
+    external
+    validRequest(_requestID)
+    {
+        requests[_requestID].responded = true;
+        result = _output;
+    }
+}
+
 

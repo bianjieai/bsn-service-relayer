@@ -14,9 +14,6 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     // mapping the request id to Callback
     mapping(bytes32 => Callback) callbacks;
 
-    // if the icRequest has been received in dest chain,the icRequest id will mapped to true
-    mapping(bytes32 => bool) icRequests;
-
     // global request count
     uint256 public requestCount;
 
@@ -38,23 +35,11 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
      * @param _sender Message sender
      */
     event CrossChainRequestSent(
-        string _eventName,
         bytes32 _requestID,
         string _endpointInfo,
         string _method,
         bytes _callData, // target method name and json string of arguments
         address _sender
-    );
-
-    /**
-    * @dev Event triggered when the request is sent
-    * @param _icRequestID Request id
-    * @param _result result bytes
-    */
-    event CrossChainResponseSent(
-        string _eventName,
-        bytes32 _icRequestID,
-        bytes _result
     );
 
     /**
@@ -100,20 +85,7 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
     modifier validateRequest(bytes32 _requestID) {
         require(
             requests[_requestID] == false,
-            "iServiceCoreEx: request has been responded"
-        );
-
-        _;
-    }
-
-    /**
-    * @dev Make sure that the icRequest  has not been responded
-    * @param _icRequestID Request id
-    */
-    modifier validateIcRequest(bytes32 _icRequestID) {
-        require(
-            icRequests[_icRequestID] == false,
-            "iServiceCoreEx: icRequest has been received"
+            "iServiceCoreEx: duplicated response!"
         );
 
         _;
@@ -156,12 +128,11 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
         requestCount ++;
 
         emit CrossChainRequestSent(
-            "CrossChainRequestSent",
             requestID,
             _endpointInfo,
             _method,
             _callData,
-            msg.sender
+            tx.origin
         );
 
         _saveRequestCallback(requestID, _callbackAddress, _callbackFunction);
@@ -202,56 +173,6 @@ contract iServiceCoreEx is iServiceInterface, Ownable {
         );
 
         return success;
-    }
-
-    /**
-     * @dev call service/contract in dest chain
-     * @param _icRequestID Request id
-     * @param _endpointAddress endpointAddress
-     * @param _callData call data from source chain
-     */
-    function callService(
-        bytes32 _icRequestID,
-        address _endpointAddress,
-        bytes _callData
-    ) public validateIcRequest(_icRequestID) {
-        uint callDataLength = _callData.length;
-        bytes memory result;
-        uint success;
-        assembly {
-        // call
-            let d := add(_callData, 32)
-            success := call(
-                gas(),
-                _endpointAddress,
-                callvalue,
-                d,
-                callDataLength,
-                0,
-                0
-            )
-
-        // handle result
-            switch success
-            case 1 {
-                let size := returndatasize
-                result := mload(0x40)
-                mstore(0x40, add(result, and(add(add(size, 0x20), 0x1f), not(0x1f))))
-                mstore(result, size)
-                returndatacopy(add(result, 0x20), 0, size)
-            }
-            case 0 {
-            // call failed and revert
-                revert(0, 0)
-            }
-        }
-        if (success == 1) {
-            emit CrossChainResponseSent(
-                "CrossChainResponseSent",
-                _icRequestID,
-                result
-            );
-        }
     }
 
     /**

@@ -10,3 +10,4 @@ yarn.lock
 dependency-graph.png
 keys
 .db
+/solc-0.4.25-gm
