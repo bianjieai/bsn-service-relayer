@@ -64,7 +64,7 @@ func NewFISCOChain(
 		config.MonitorInterval = DefaultMonitorInterval
 	}
 
-	chainID := config.ChainParams.ChainID
+	chainID := GetChainID(config.ChainParams)
 
 	fisco := &FISCOChain{
 		Config:              config,
@@ -196,6 +196,8 @@ func (f *FISCOChain) buildInterchainRequest(e *iservice.IServiceCoreExCrossChain
 		ID:              hex.EncodeToString(e.RequestID[:]),
 		SourceChainID:   f.ChainID,
 		DestChainID:     endpointInfo.DestChainID,
+		DestSubChainID:  endpointInfo.DestSubChainID,
+		DestChainType:   endpointInfo.DestChainType,
 		EndpointAddress: endpointInfo.EndpointAddress,
 		EndpointType:    endpointInfo.EndpointType,
 		Method:          e.Method,

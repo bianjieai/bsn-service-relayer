@@ -50,6 +50,8 @@ type InterchainRequest struct {
 	ID              string // request ID
 	SourceChainID   string // source chain ID
 	DestChainID     string // target chain ID
+	DestSubChainID  string // target sub chain ID
+	DestChainType  string // target chain type
 	EndpointAddress string // end point address
 	EndpointType    string // end point type
 	Method          string // method name

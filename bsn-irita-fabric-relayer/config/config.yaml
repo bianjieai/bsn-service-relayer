@@ -1,27 +1,38 @@
 base:
-    app_chain_type: fabric # application chain name
+    app_chain_type: fisco # application chain type
     store_path: .db # store path
-    http_port: 18050
-    mysql_conn: root:123456@tcp(192.168.1.60:3306)/bsnflowdb?charset=utf8
-    city_code: ORG12345
-service:
-    service_name: call_service
-    service_description: 'fabric-relayer'
-    service_schemas: '{"input":{"type":"object"},"output":{"type:"object"}}'
-    service_provider: ''
-    service_fee: '1point'
-    service_qos: 100
+
 # irita-hub config
 hub:
-    chain_id: irita-hub
+    chain_id: irita
     node_rpc_addr: http://127.0.0.1:26657
     node_grpc_addr: 127.0.0.1:9090
     key_path: .keys
-    key_name: relayer
-    passphrase: 12345678
+    key_name: node0
+    passphrase: 1234567890
 
-# fabric config
-fabric:
-    sdk_config: /root/config.yaml
-    msp_user_name: Admin
-    org_name: org1.example.com
+# fisco config
+fisco:
+    monitor_interval: 1 # chain monitoring interval in seconds
+    connection_type: channel
+    ca_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/ca.crt
+    cert_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/sdk.crt
+    key_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/sdk.key
+    sm_crypto: true
+    priv_key_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/key.pem
+
+# mysql config
+mysql:
+    db_name: relayer
+    db_user_name: root
+    db_user_passphrase: 123456
+    host: localhost
+    port: 3306
+
+# service config
+service:
+    service_name: cc-contract-call
+    schemas: wd
+    provider: iaa1fe6gm5kyam6xfs0wngw3d23l9djlyw82xxcjm2
+    service_fee: 1000000upoint
+    qos: 100

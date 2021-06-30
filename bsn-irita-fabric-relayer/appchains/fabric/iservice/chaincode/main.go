@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"relayer/appchains/fabric/iservice/chaincode/crossChainCode"
+	"relayer/appchains/fabirc/iservice/chaincode/crossChainCode"
 )
 
 func main() {

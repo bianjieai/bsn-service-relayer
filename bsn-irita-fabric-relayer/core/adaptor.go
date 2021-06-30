@@ -5,7 +5,6 @@ type ResponseAdaptor struct {
 	StatusCode  int
 	Result      string
 	Output      string
-	ICRequestID string
 }
 
 // GetErrMsg implements ResponseI
@@ -34,9 +33,4 @@ func (r ResponseAdaptor) GetOutput() string {
 	default:
 		return ""
 	}
-}
-
-// GetInterchainRequestID implements ResponseI
-func (r ResponseAdaptor) GetInterchainRequestID() string {
-	return r.ICRequestID
 }

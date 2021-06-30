@@ -8,6 +8,7 @@ import (
 	"github.com/irisnet/service-sdk-go/service"
 	"github.com/irisnet/service-sdk-go/types"
 	"github.com/irisnet/service-sdk-go/types/store"
+	"relayer/common"
 	"relayer/core"
 	"relayer/logging"
 	"relayer/mysql"
@@ -183,6 +184,7 @@ func (ic IritaHubChain) BuildServiceInvocationRequest(
 	request core.InterchainRequest,
 ) (service.InvokeServiceRequest, error) {
 	serviceFeeCap, err := types.ParseDecCoins(ic.ServiceInfo.ServiceFee)
+	destID := common.GetDestID(request.DestChainType, request.DestSubChainID, request.DestChainID)
 
 	input := ServiceInput{
 		Header: Header{
@@ -196,7 +198,9 @@ func (ic IritaHubChain) BuildServiceInvocationRequest(
 				TxHash: request.TxHash,
 			},
 			Dest: Dest{
-				ID:              request.DestChainID,
+				ID:              destID,
+				ChainID:         request.DestChainID,
+				SubChainID:      request.DestSubChainID,
 				EndpointType:    request.EndpointType,
 				EndpointAddress: request.EndpointAddress,
 			},

@@ -1,8 +1,0 @@
-# ethereum testing config
-eth:
-    node_rpc_addr: wss://ropsten.infura.io/ws/v3/56e89587eacb4fbe8655e4c44b146237
-    gas_limit: 5000000
-    gas_price: 5000000000
-    key: 5dee232c8be5cb81f0ae6fddb45243fc6208192c16aef275ef41b019df765d1f
-    exchange_rate_service_addr: 0x40259dF4A9EE99C730d5dadD44A8F629A438e7b8
-    price_oracle_addr: 0x35b6ed374bcc41d5a99cb3b797ca9aace848469c

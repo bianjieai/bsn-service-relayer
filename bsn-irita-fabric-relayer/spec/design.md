@@ -60,8 +60,14 @@ type IServiceMarketI interface {
 type AppChainI interface {
     ChainI
 
-    // listen to the interchain events with an event handler
-    InterchainEventListener(cb func(icEvent InterchainEventI)) error
+    // Start starts to monitor the application chain for the interchain request
+    Start(handler func(chainID string, request InterchainRequest))error
+
+    // Stop terminates the application chain monitor
+    Stop() error
+
+    // GetHeight gets the current height
+    GetHeight() int64
 
     // send the response to the application chain
     SendResponse(requestID string, response ResponseI) error
@@ -74,42 +80,16 @@ type AppChainI interface {
 ## IRITA-HUB 链接口
 
 ```go
-// InterchainRequestI is an interface for the interchain request
-type InterchainRequestI interface {
-    GetServiceName()   string // service name getter
-    GetProvider()      string // provider getter
-    GetInput()         string // request input getter
-    GetTimeout()       uint64 // request timeout getter
-    GetServiceFeeCap() string // service fee cap getter
-}
-```
-
-```go
 // IritaHubChainI defines the interface to interact with IRITA-HUB
 type IritaHubChainI interface {
     ChainI
 
     // send the interchain request and handle the response with the given callback
-    SendInterchainRequest(request InterchainRequestI, cb func(icRequestID string, response ResponseI)) error
+    SendInterchainRequest(request InterchainRequest, cb func(icRequestID string, response ResponseI)) error
 }
 ```
 
 ## 接口适配器
-
-### 跨链请求适配器
-
-此适配器为 `InterchainRequestI` 的内置实现，用于将跨链事件适配到 IRITA-HUB 的跨链请求。
-
-```go
-// InterchainRequestAdaptor bridges the interchain event and Irita-Hub interchain request
-type InterchainRequestAdaptor struct {
-    ServiceName   string
-    Provider      string
-    Input         string
-    Timeout       uint64
-    ServiceFeeCap string
-}
-```
 
 ### 响应适配器
 
@@ -130,30 +110,6 @@ type ResponseAdaptor struct {
 ### 应用链
 
 ```go
-type IServiceRequestEvent struct {
-    RequestID   string
-    ServiceName string
-    Provider    string
-    Input       string
-    Timeout     uint64
-}
-
-func (e IServiceRequestEvent) GetRequestID() string {
-    return e.RequestID
-}
-
-func (e IServiceRequestEvent) GetServiceName() string {
-    return e.ServiceName
-}
-
-func (e IServiceRequestEvent) GetInput() string {
-    return e.Input
-}
-
-func (e IServiceRequestEvent) GetTimeout() uint64 {
-    return e.Timeout
-}
-
 type ServiceBinding struct {
     ServiceName string 
     Schemas     string
@@ -218,18 +174,18 @@ func (fc FabricChain) GetChainID() string {
     return fc.ChannelID
 }
 
-func (fc FabricChain) InterchainEventListener(cb func(icEvent InterchainEventI)) error {
+func (fc FabricChain) Start(cb func(chainID string, request InterchainRequest)) error {
     i := 0
 
     for {
-        icEvent := InterchainEvent{
+        req := InterchainRequest{
             RequestID: fmt.Sprintf("request%d", i+1),
             ServiceName:  "exchange_rate",
             Input:        fmt.Sprintf(`{"name":"CNY-USD"}`),
             Timeout:      uint64(50),
         }
 
-        cb(icEvent)
+        cb(fc.ChainID, req)
 
         time.Sleep(10 * time.Second)
         i++

@@ -138,7 +138,7 @@ contract iServiceClient {
  * The service is supported by price service
  */
 contract ServiceConsumer is iServiceClient {
-    string private endpointInfo = "{\"dest_chain_id\":\"1\",\"dest_sub_chain_id\":\"1\",\"dest_chain_type\":\"fisco\",\"endpoint_address\":\"0x9e629d97854a80c3e4c3971acaa46edd43f81a52\",\"endpoint_type\":\"contract\"}";
+    string private endpointInfo = "{\"dest_chain_id\":\"fisco-1-1\",\"endpoint_address\":\"0x9e629d97854a80c3e4c3971acaa46edd43f81a52\",\"endpoint_type\":\"contract\"}";
     event Hello(bytes32 _requestID, string _helloMsg);
     string public result;
     /*

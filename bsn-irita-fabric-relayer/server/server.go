@@ -2,17 +2,15 @@ package server
 
 import (
 	"fmt"
-	"relayer/appchains"
 )
 
 // StartWebServer starts the web server with a ChainManager instance
 func StartWebServer(
-	chainManager appchains.AppChainHandlerI,
-	port int,
+	chainManager *ChainManager,
 ) {
 	srv := NewHTTPService(chainManager)
 
-	err := srv.Router.Run(fmt.Sprintf(":%d", port))
+	err := srv.Router.Run(":8082")
 	if err != nil {
 		fmt.Println(err)
 	}

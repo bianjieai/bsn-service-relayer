@@ -1,8 +1,16 @@
 package core
 
+import (
+	"relayer/mysql"
+)
+
 // HandleInterchainRequest handles the interchain request
 func (r *Relayer) HandleInterchainRequest(chainID string, request InterchainRequest, txHash string) error {
 	r.Logger.Infof("got the interchain request on %s: %+v", chainID, request)
+
+	mysql.OnInterchainRequestReceived(request.ID, chainID, txHash)
+
+	request.TxHash = txHash
 
 	callback := func(icRequestID string, response ResponseI) {
 		r.Logger.Infof(
@@ -10,6 +18,9 @@ func (r *Relayer) HandleInterchainRequest(chainID string, request InterchainRequ
 			r.HubChain.GetChainID(),
 			response,
 		)
+
+		// TODO
+		mysql.OnInterchainRequestHandled()
 
 		err := r.AppChains[chainID].SendResponse(request.ID, response)
 		if err != nil {

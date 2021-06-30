@@ -1,12 +1,13 @@
-package fisco
+package fabric
 
 import (
 	"encoding/json"
-	"fmt"
+	"strconv"
+	"strings"
 )
 
 const (
-	ChainType              = "fisco"
+	ChainType              = "fabric"
 	DefaultMonitorInterval = 1 // 1 second by default
 )
 
@@ -18,22 +19,28 @@ type CompactBlock struct {
 // ChainParams defines the params for the specific chain
 type ChainParams struct {
 	NodeURLs           map[string]string `json:"node_urls"`
-	GroupID            int    `json:"group_id"`
-	ChainID            int64  `json:"chain_id"`
+	ChainID            string  `json:"chain_id"`
 	IServiceCoreAddr   string `json:"iservice_core_addr"`
 }
 
 type EndpointInfo struct {
-	DestSubChainID string `json:"dest_sub_chain_id"`
 	DestChainID string `json:"dest_chain_id"`
-	DestChainType string `json:"dest_chain_type"`
 	EndpointAddress string `json:"endpoint_address"`
 	EndpointType string `json:"endpoint_type"`
 }
 
-// GetChainID returns the unique chain id from the specified chain params
-func GetChainID(params ChainParams) string {
-	return fmt.Sprintf("%s-%d-%d", ChainType, params.GroupID, params.ChainID)
+// GetChainID returns the unique fisco chain id from the ChainID
+func GetFabricChainID(ChainID string) int64 {
+	chainInfos := strings.Split(ChainID, "-")
+	fiscoChainID, _ := strconv.ParseInt(chainInfos[2], 10, 64)
+	return fiscoChainID
+}
+
+// GetGroupID returns the unique fisco group id from the ChainID
+func GetFabricGroupID(ChainID string) int  {
+	chainInfos := strings.Split(ChainID, "-")
+	fiscoGroupID, _ := strconv.Atoi(chainInfos[1])
+	return fiscoGroupID
 }
 
 // GetChainIDFromBytes returns the unique chain id from the given chain params bytes
@@ -44,5 +51,5 @@ func GetChainIDFromBytes(params []byte) (string, error) {
 		return "", err
 	}
 
-	return GetChainID(chainParams), nil
+	return chainParams.ChainID, nil
 }

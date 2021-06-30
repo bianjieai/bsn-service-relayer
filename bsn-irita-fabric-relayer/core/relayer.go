@@ -27,6 +27,8 @@ func NewRelayer(appChainType string, hub HubChainI, appChainFactory AppChainFact
 		HubChain:        hub,
 		AppChainFactory: appChainFactory,
 		Logger:          logger,
+		AppChains:       map[string]AppChainI{},
+		AppChainStates:  map[string]bool{},
 	}
 }
 
@@ -58,6 +60,31 @@ func (r *Relayer) AddChain(appChainParams []byte) (chainID string, err error) {
 	r.AppChainStates[chainID] = true
 
 	return chainID, nil
+}
+
+// DeleteChain delete a app chain for the relayer
+func (r *Relayer) DeleteChain(chainID string) error {
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+
+	state, ok := r.AppChainStates[chainID]
+	if !ok {
+		return fmt.Errorf("chain ID %s does not exist", chainID)
+	}
+
+	if !state {
+		return fmt.Errorf("chain ID %s is not running", chainID)
+	}
+
+	chain := r.AppChains[chainID]
+	if err := chain.Stop(); err != nil {
+		return err
+	}
+	delete(r.AppChains, chainID)
+	delete(r.AppChainStates, chainID)
+	r.AppChainFactory.DeleteChainConfig(r.AppChainType, chainID)
+
+	return nil
 }
 
 // StartChain starts the specified app chain
@@ -106,6 +133,16 @@ func (r *Relayer) StopChain(chainID string) error {
 	r.AppChainStates[chainID] = false
 
 	return nil
+}
+
+// GetChain gets the specified app chain
+func (r *Relayer) GetChain(chainID string) (appChain AppChainI, err error) {
+	appChain, ok := r.AppChains[chainID]
+	if !ok {
+		return nil, fmt.Errorf("chain ID %s does not exist", chainID)
+	}
+
+	return appChain, nil
 }
 
 // GetChains retrieves the current active app chains
