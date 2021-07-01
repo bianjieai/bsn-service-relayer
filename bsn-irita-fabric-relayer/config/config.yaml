@@ -1,5 +1,5 @@
 base:
-    app_chain_type: fisco # application chain type
+    app_chain_type: fabric # application chain type
     store_path: .db # store path
 
 # irita-hub config
@@ -20,6 +20,12 @@ fisco:
     key_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/sdk.key
     sm_crypto: true
     priv_key_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/key.pem
+
+# fabric config
+fabric:
+    sdk_config: /root/config.yaml
+    msp_user_name: Admin
+    org_name: org1.example.com
 
 # mysql config
 mysql:

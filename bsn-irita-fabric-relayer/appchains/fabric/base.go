@@ -2,8 +2,8 @@ package fabric
 
 import (
 	"encoding/json"
-	"strconv"
-	"strings"
+	"time"
+	"fmt"
 )
 
 const (
@@ -18,9 +18,31 @@ type CompactBlock struct {
 
 // ChainParams defines the params for the specific chain
 type ChainParams struct {
-	NodeURLs           map[string]string `json:"node_urls"`
-	ChainID            string  `json:"chain_id"`
-	IServiceCoreAddr   string `json:"iservice_core_addr"`
+	ChainId uint64 `json:"chainId"`
+
+	AppCode string `json:"appCode"`
+
+	CrossChainCode string `json:"ccm"`
+
+	ChannelId string `json:"channelId"`
+
+	Nodes []string `json:"nodes"`
+}
+
+func (r *ChainParams) ToStoreData(cityCode string) *FabricRelayer {
+
+	relayer := &FabricRelayer{
+		ID: r.ChainId,
+		AppCode:   r.AppCode,
+		ChannelId: r.ChannelId,
+
+		CrossChainCode: r.CrossChainCode,
+		CityNode:       cityCode,
+		Status:         1,
+		CreateTime:     time.Now(),
+	}
+	relayer.SetNodes(r.Nodes)
+	return relayer
 }
 
 type EndpointInfo struct {
@@ -29,18 +51,10 @@ type EndpointInfo struct {
 	EndpointType string `json:"endpoint_type"`
 }
 
-// GetChainID returns the unique fisco chain id from the ChainID
-func GetFabricChainID(ChainID string) int64 {
-	chainInfos := strings.Split(ChainID, "-")
-	fiscoChainID, _ := strconv.ParseInt(chainInfos[2], 10, 64)
-	return fiscoChainID
-}
 
-// GetGroupID returns the unique fisco group id from the ChainID
-func GetFabricGroupID(ChainID string) int  {
-	chainInfos := strings.Split(ChainID, "-")
-	fiscoGroupID, _ := strconv.Atoi(chainInfos[1])
-	return fiscoGroupID
+// GetChainID returns the unique chain id from the specified chain params
+func GetChainID(params ChainParams) string {
+	return fmt.Sprintf("%s-%d-%d", ChainType, params.ChannelId, params.ChainId)
 }
 
 // GetChainIDFromBytes returns the unique chain id from the given chain params bytes
@@ -51,5 +65,5 @@ func GetChainIDFromBytes(params []byte) (string, error) {
 		return "", err
 	}
 
-	return chainParams.ChainID, nil
+	return GetChainID(chainParams), nil
 }

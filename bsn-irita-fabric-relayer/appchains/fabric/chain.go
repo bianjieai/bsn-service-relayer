@@ -5,13 +5,15 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
-	ethcmn "github.com/ethereum/go-ethereum/common"
-
-	"github.com/FISCO-BCOS/go-sdk/abi"
-	fiscoclient "github.com/FISCO-BCOS/go-sdk/client"
+	"github.com/BSNDA/fabric-sdk-go-gm/pkg/client/channel"
+	"github.com/BSNDA/fabric-sdk-go-gm/pkg/client/event"
+	"github.com/BSNDA/fabric-sdk-go-gm/pkg/client/ledger"
+	fcCommon "github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/protos/common"
+	"github.com/BSNDA/fabric-sdk-go-gm/pkg/fabsdk"
 	"github.com/FISCO-BCOS/go-sdk/core/types"
 
 	"relayer/appchains/fabric/iservice"
@@ -24,12 +26,13 @@ import (
 
 // FabricChain defines the Fabric chain
 type FabricChain struct {
-	Config  Config
-	Client  *fiscoclient.Client
+	config  Config
 	ChainID string // unique chain ID
 
-	IServiceCoreSession *iservice.IServiceCoreExSession // iService Core Extension contract session
-	IServiceCoreABI     abi.ABI                         // parsed iService Core Extension ABI
+	sdk           *fabsdk.FabricSDK
+	channelClient *channel.Client
+	eventClient   *event.Client
+	ledgerClient  *ledger.Client
 
 	store      *store.Store // store backend instance
 	lastHeight int64        // last height
@@ -43,59 +46,67 @@ func NewFabricChain(
 	config Config,
 	store *store.Store,
 ) (*FabricChain, error) {
-	clientConfig := BuildClientConfig(config)
+	chainID := common.GetChainID("fabric", config.ChannelId, strconv.FormatUint(config.ChainId,10))
+	fabric := &FabricChain{
+		ChainID:   chainID,
+		config:    config,
+		done:      true,
+		store:     store,
+	}
 
-	client, err := fiscoclient.Dial(clientConfig)
+	sdk, err := fabric.fabSdk()
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to fisco node: %s", err)
-	}
+		return nil, fmt.Errorf("fabric sdk init failed %s", err)
 
-	iServiceCoreABI, err := abi.JSON(strings.NewReader(iservice.IServiceCoreExABI))
+	}
+	fabric.sdk = sdk
+	channelProvider := fabric.sdk.ChannelContext(fabric.config.ChannelId,
+		fabsdk.WithOrg(fabric.config.OrgName),
+		fabsdk.WithUser(fabric.config.MspUserName),
+	)
+
+	client, err := channel.New(channelProvider)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse iService Core Extension ABI: %s", err)
+		logging.Logger.Errorf("fabric channel client init failed %s", err)
+		return nil, fmt.Errorf("fabric channel client init failed %s", err)
 	}
 
-	iServiceCore, err := iservice.NewIServiceCoreEx(ethcmn.HexToAddress(config.IServiceCoreAddr), client)
+	ec, err := event.New(channelProvider, event.WithBlockEvents()) //, event.WithSeekType(seek.Newest)
 	if err != nil {
-		return nil, fmt.Errorf("failed to instantiate the iService Core Extension contract: %s", err)
+		logging.Logger.Errorf("fabric event client init failed %s", err)
+		return nil, fmt.Errorf("fabric event client init failed %s", err)
 	}
 
-	if config.MonitorInterval == 0 {
-		config.MonitorInterval = DefaultMonitorInterval
+	lc, err := ledger.New(channelProvider)
+	if err != nil {
+		logging.Logger.Errorf("fabric ledger client init failed %s", err)
+		return nil, fmt.Errorf("fabric ledger client init failed %s", err)
 	}
 
-	chainID := config.ChainParams.ChainID
+	fabric.eventClient = ec
+	fabric.channelClient = client
+	fabric.ledgerClient = lc
 
-	fisco := &FabricChain{
-		Config:              config,
-		Client:              client,
-		ChainID:             chainID,
-		IServiceCoreSession: &iservice.IServiceCoreExSession{Contract: iServiceCore, CallOpts: *client.GetCallOpts(), TransactOpts: *client.GetTransactOpts()},
-		IServiceCoreABI:     iServiceCoreABI,
-		store:               store,
-		done:                true,
-	}
-
-	err = fisco.storeChainParams()
+	err = fabric.storeChainParams()
 	if err != nil {
 		return nil, err
 	}
 
-	err = fisco.storeChainID()
+	err = fabric.storeChainID()
 	if err != nil {
 		return nil, err
 	}
 
 	store.GetInt64(HeightKey(chainID))
 
-	return fisco, nil
+	return fabric, nil
 }
 
 // BuildFISCOChain builds a FISCOChain instance from the given chain params and store
-func BuildFISCOChain(
+func BuildFabricChain(
 	chainParams []byte,
 	store *store.Store,
-) (*FISCOChain, error) {
+) (*FabricChain, error) {
 	var params ChainParams
 	err := json.Unmarshal(chainParams, &params)
 	if err != nil {
@@ -113,21 +124,40 @@ func BuildFISCOChain(
 		return nil, err
 	}
 
+	fabricRelayer := params.ToStoreData(baseConfig.OrgCode)
+
 	config := Config{
 		BaseConfig:  baseConfig,
-		ChainParams: params,
+		FabricRelayer: fabricRelayer,
 	}
 
-	return NewFISCOChain(config, store)
+	return NewFabricChain(config, store)
 }
 
+func (f *FabricChain) fabSdk() (*fabsdk.FabricSDK, error) {
+
+	conf := f.config.GetSdkConfig(f.config.ChannelId, f.config.GetNodes())
+	c, err := conf()
+	if err != nil {
+		ps, _ := c[0].Lookup("channels")
+		logging.Logger.Infof("New Fabric SDK Channels is  %s", ps)
+	}
+
+	sdk, err := fabsdk.New(conf)
+
+	if err != nil {
+		logging.Logger.Errorf("New Fabric SDK has error %s", err.Error())
+	}
+
+	return sdk, err
+}
 // GetChainID implements AppChainI
-func (f *FISCOChain) GetChainID() string {
+func (f *FabricChain) GetChainID() string {
 	return f.ChainID
 }
 
 // Start implements AppChainI
-func (f *FISCOChain) Start(handler core.InterchainRequestHandler) error {
+func (f *FabricChain) Start(handler core.InterchainRequestHandler) error {
 	if !f.done {
 		return fmt.Errorf("chain %s has been started", f.ChainID)
 	}
@@ -143,7 +173,7 @@ func (f *FISCOChain) Start(handler core.InterchainRequestHandler) error {
 }
 
 // Stop implements AppChainI
-func (f *FISCOChain) Stop() error {
+func (f *FabricChain) Stop() error {
 	logging.Logger.Infof("stopping chain %s", f.ChainID)
 	f.done = true
 
@@ -151,12 +181,12 @@ func (f *FISCOChain) Stop() error {
 }
 
 // GetHeight implements AppChainI
-func (f *FISCOChain) GetHeight() int64 {
+func (f *FabricChain) GetHeight() int64 {
 	return f.lastHeight
 }
 
 // SendResponse implements AppChainI
-func (f *FISCOChain) SendResponse(requestID string, response core.ResponseI) error {
+func (f *FabricChain) SendResponse(requestID string, response core.ResponseI) error {
 	requestIDBytes, err := hex.DecodeString(requestID)
 	if err != nil {
 		return err
@@ -186,7 +216,7 @@ func (f *FISCOChain) SendResponse(requestID string, response core.ResponseI) err
 }
 
 // buildInterchainRequest builds an interchain request from the interchain event
-func (f *FISCOChain) buildInterchainRequest(e *iservice.IServiceCoreExCrossChainRequestSent) core.InterchainRequest {
+func (f *FabricChain) buildInterchainRequest(e *iservice.IServiceCoreExCrossChainRequestSent) core.InterchainRequest {
 	var endpointInfo EndpointInfo
 	err := json.Unmarshal([]byte(e.EndpointInfo), &endpointInfo)
 	if err != nil {
@@ -205,7 +235,7 @@ func (f *FISCOChain) buildInterchainRequest(e *iservice.IServiceCoreExCrossChain
 }
 
 // waitForReceipt waits for the receipt of the given tx
-func (f *FISCOChain) waitForReceipt(tx *types.Transaction, name string) error {
+func (f *FabricChain) waitForReceipt(tx *types.Transaction, name string) error {
 	logging.Logger.Infof("%s: transaction sent to %s, hash: %s", name, f.GetChainID(), tx.Hash().Hex())
 
 	receipt, err := f.Client.WaitMined(tx)
@@ -223,7 +253,7 @@ func (f *FISCOChain) waitForReceipt(tx *types.Transaction, name string) error {
 }
 
 // monitor is responsible for monitoring the chain
-func (f *FISCOChain) monitor() {
+func (f *FabricChain) monitor() {
 	for {
 		f.scan()
 
@@ -231,12 +261,41 @@ func (f *FISCOChain) monitor() {
 			return
 		}
 
-		time.Sleep(time.Duration(f.Config.MonitorInterval) * time.Second)
+		time.Sleep(time.Duration(f.config.MonitorInterval) * time.Second)
 	}
 }
 
 // scan performs chain scanning
-func (f *FISCOChain) scan() {
+func (f *FabricChain) scan() {
+	fi := func(block *fcCommon.Block) bool {
+		return true
+	}
+
+	logging.Logger.Infof("Into InterchainEventListener chainID：%s", f.config.ChainId)
+
+	reg, eventch, err := f.eventClient.RegisterBlockEvent(fi) //.channelClient.RegisterChaincodeEvent(fc.ChainCodeID, "[\\S\\s]*")
+	if err != nil {
+		logging.Logger.Errorf("fabric event failed :%s", err)
+		return
+	}
+	defer f.eventClient.Unregister(reg)
+	for {
+		select {
+		case eventch, ok := <-eventch:
+			if ok {
+				f.blockevent(eventch)
+			}
+		case stop, ok := <-f.stop:
+			{
+				if ok && stop {
+					logging.Logger.Infof("the chainId %s fabric relayer event is stop", fc.ChainInfo.GetChainId())
+					return
+				}
+
+			}
+		}
+
+	}
 	currentHeight, err := f.getBlockNumber()
 	if err != nil {
 		logging.Logger.Errorf("failed to get the current block height: %s", err)
@@ -255,7 +314,7 @@ func (f *FISCOChain) scan() {
 }
 
 // scanBlocks scans the blocks of the specified range
-func (f *FISCOChain) scanBlocks(startHeight int64, endHeight int64) {
+func (f *FabricChain) scanBlocks(startHeight int64, endHeight int64) {
 	for h := startHeight; h <= endHeight; {
 		block, err := f.getBlock(h)
 		if err != nil {
@@ -274,35 +333,11 @@ func (f *FISCOChain) scanBlocks(startHeight int64, endHeight int64) {
 	}
 }
 
-// getBlockNumber retrieves the current block number
-func (f *FISCOChain) getBlockNumber() (int64, error) {
-	blockNumber, err := f.Client.GetBlockNumber(context.Background())
-	if err != nil {
-		return -1, err
-	}
 
-	blockNumberStr := string(blockNumber)
 
-	return common.Hex2Decimal(blockNumberStr[3 : len(blockNumberStr)-1])
-}
-
-// getBlock gets the block in the given height
-func (f *FISCOChain) getBlock(height int64) (block CompactBlock, err error) {
-	blockBz, err := f.Client.GetBlockByNumber(context.Background(), fmt.Sprintf("0x%x", height), false)
-	if err != nil {
-		return block, fmt.Errorf("failed to retrieve the block, height: %d, err: %s", height, err)
-	}
-
-	err = json.Unmarshal(blockBz, &block)
-	if err != nil {
-		return block, fmt.Errorf("failed to unmarshal the block, height: %d, err: %s", height, err)
-	}
-
-	return
-}
 
 // parseInterchainEventsFromBlock parses the interchain events from the block
-func (f *FISCOChain) parseInterchainEventsFromBlock(block CompactBlock) {
+func (f *FabricChain) parseInterchainEventsFromBlock(block CompactBlock) {
 	for _, txHash := range block.Txs {
 		receipt, err := f.Client.GetTransactionReceipt(context.Background(), txHash)
 		if err != nil {
@@ -319,7 +354,7 @@ func (f *FISCOChain) parseInterchainEventsFromBlock(block CompactBlock) {
 }
 
 // parseServiceInvokedEvents parses the ServiceInvoked events from the receipt
-func (f *FISCOChain) parseCrossChaiRequestSentEvents(receipt *types.Receipt) {
+func (f *FabricChain) parseCrossChaiRequestSentEvents(receipt *types.Receipt) {
 	for _, log := range receipt.Logs {
 		if !strings.EqualFold(log.Address, f.Config.IServiceCoreAddr) {
 			continue
@@ -344,8 +379,8 @@ func (f *FISCOChain) parseCrossChaiRequestSentEvents(receipt *types.Receipt) {
 }
 
 // storeChainParams stores the chain params
-func (f *FISCOChain) storeChainParams() error {
-	bz, err := json.Marshal(f.Config.ChainParams)
+func (f *FabricChain) storeChainParams() error {
+	bz, err := json.Marshal(f.config.FabricRelayer)
 	if err != nil {
 		return err
 	}
@@ -353,7 +388,7 @@ func (f *FISCOChain) storeChainParams() error {
 	return f.store.Set(ChainParamsKey(f.ChainID), bz)
 }
 
-func (f *FISCOChain) storeChainID() error {
+func (f *FabricChain) storeChainID() error {
 	chainIDsbz, err := f.store.Get([]byte("chainIDs"))
 	if err != nil {
 		return err
@@ -363,13 +398,13 @@ func (f *FISCOChain) storeChainID() error {
 	if err != nil {
 		return err
 	}
-	chainIDs[f.ChainID] = "fisco"
+	chainIDs[f.ChainID] = "fabric"
 	bz, err := json.Marshal(chainIDs)
 	return f.store.Set([]byte("chainIDs"), bz)
 }
 
 // updateHeight updates the height
-func (f *FISCOChain) updateHeight(height int64) error {
+func (f *FabricChain) updateHeight(height int64) error {
 	f.lastHeight = height
 	return f.store.SetInt64(HeightKey(f.ChainID), height)
 }

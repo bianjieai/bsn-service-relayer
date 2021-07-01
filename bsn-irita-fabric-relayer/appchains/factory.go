@@ -7,8 +7,7 @@ import (
 
 	"github.com/spf13/viper"
 
-	"relayer/appchains/fisco"
-	// "relayer/appchains/ethereum"
+	"relayer/appchains/fabric"
 	"relayer/core"
 	"relayer/config"
 	"relayer/store"
@@ -45,10 +44,10 @@ func (f *AppChainFactory) BuildAppChain(chainType string, chainParams []byte) (c
 		return nil, nil
 
 	case "fabric":
-		return nil, nil
+		return fabric.BuildFabricChain(chainParams, f.Store)
 
 	case "fisco":
-		return fisco.BuildFISCOChain(chainParams, f.Store)
+		return nil,nil
 
 	default:
 		return nil, fmt.Errorf("application chain %s not supported", chainType)
@@ -62,10 +61,10 @@ func (f *AppChainFactory) GetChainID(chainType string, chainParams []byte) (chai
 		return "", nil
 
 	case "fabric":
-		return "", nil
+		return fabric.GetChainIDFromBytes(chainParams)
 
 	case "fisco":
-		return fisco.GetChainIDFromBytes(chainParams)
+		return "", nil
 
 	default:
 		return "", fmt.Errorf("application chain %s not supported", chainType)
@@ -79,10 +78,10 @@ func (f *AppChainFactory) StoreBaseConfig(chainType string, baseConfig []byte) e
 		return nil
 
 	case "fabric":
-		return nil
+		return fabric.StoreBaseConfig(f.Store, baseConfig)
 
 	case "fisco":
-		return fisco.StoreBaseConfig(f.Store, baseConfig)
+		return nil
 
 	default:
 		return fmt.Errorf("application chain %s not supported", chainType)
@@ -96,10 +95,7 @@ func (f *AppChainFactory) DeleteChainConfig(chainType string, chainID string) er
 		return nil
 
 	case "fabric":
-		return nil
-
-	case "fisco":
-		err := f.Store.Delete(fisco.ChainParamsKey(chainID))
+		err := f.Store.Delete(fabric.ChainParamsKey(chainID))
 		if err != nil{
 			return err
 		}
@@ -108,11 +104,14 @@ func (f *AppChainFactory) DeleteChainConfig(chainType string, chainID string) er
 		json.Unmarshal(chainIDsbz, &chainIDs)
 		delete(chainIDs, chainID)
 		bz, err := json.Marshal(chainIDs)
-	    err = f.Store.Set([]byte("chainIDs"), bz)
+		err = f.Store.Set([]byte("chainIDs"), bz)
 		if err != nil{
 			return err
 		}
-		return f.Store.Delete(fisco.ChainParamsKey(chainID))
+		return f.Store.Delete(fabric.ChainParamsKey(chainID))
+
+	case "fisco":
+		return nil
 	default:
 		return fmt.Errorf("application chain %s not supported", chainType)
 	}
@@ -125,10 +124,10 @@ func (bc *BaseConfigFactory) NewBaseConfig(chainType string) (config.BaseConfigI
 		return nil, nil
 
 	case "fabric":
-		return nil, nil
+		return fabric.NewBaseConfig(bc.config)
 
 	case "fisco":
-		return fisco.NewBaseConfig(bc.config)
+		return nil, nil
 
 	default:
 		return nil, fmt.Errorf("application chain %s not supported", chainType)
