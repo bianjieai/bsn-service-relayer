@@ -1,0 +1,325 @@
+[
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "OwnershipTransferred",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "string",
+				"name": "_serviceName",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "_schemas",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "_provider",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "_serviceFee",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "_qos",
+				"type": "uint256"
+			}
+		],
+		"name": "ServiceBindingAdded",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "string",
+				"name": "_serviceName",
+				"type": "string"
+			}
+		],
+		"name": "ServiceBindingRemoved",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "string",
+				"name": "_serviceName",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "_provider",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "_serviceFee",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "_qos",
+				"type": "uint256"
+			}
+		],
+		"name": "ServiceBindingUpdated",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_serviceName",
+				"type": "string"
+			}
+		],
+		"name": "GetServiceBinding",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "serviceName",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "schemas",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "provider",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "serviceFee",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "qos",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct iServiceMarketEx.ServiceBinding",
+				"name": "binding",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_index",
+				"type": "uint256"
+			}
+		],
+		"name": "GetServiceBindingByIndex",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "serviceName",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "schemas",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "provider",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "serviceFee",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "qos",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct iServiceMarketEx.ServiceBinding",
+				"name": "binding",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "GetServiceBindingCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_serviceName",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_schemas",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_provider",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_serviceFee",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_qos",
+				"type": "uint256"
+			}
+		],
+		"name": "addServiceBinding",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "isOwner",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_serviceName",
+				"type": "string"
+			}
+		],
+		"name": "removeServiceBinding",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_serviceName",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_provider",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_serviceFee",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_qos",
+				"type": "uint256"
+			}
+		],
+		"name": "updateServiceBinding",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]

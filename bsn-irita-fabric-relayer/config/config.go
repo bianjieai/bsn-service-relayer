@@ -12,12 +12,10 @@ const (
 	ConfigKeyAppChainType = "base.app_chain_type"
 	ConfigKeyStorePath    = "base.store_path"
 
+	ConfigKeyHttpPort = "base.http_port"
+
 	DefaultStorePath = ".db"
 )
-
-type BaseConfigI interface {
-	PrintConfig()
-}
 
 // LoadYAMLConfig loads the YAML config file
 func LoadYAMLConfig(configFileName string) (*viper.Viper, error) {

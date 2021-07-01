@@ -19,27 +19,16 @@ var (
 	defaultFee           = "4point"
 	defaultBroadcastMode = types.Commit
 	defaultKeyAlgorithm  = "sm2"
-	defaultServiceName   = "cc-contract-call"
-	defaultSchemas       = ""
-	defaultProvider      = "iaa1fe6gm5kyam6xfs0wngw3d23l9djlyw82xxcjm2"
-	defaultServiceFee    = "1000000upoint"
-	defaultQoS           = uint64(100)
 )
 
 const (
 	Prefix       = "hub"
-	ServicePrefix= "service"
 	ChainID      = "chain_id"
 	NodeRPCAddr  = "node_rpc_addr"
 	NodeGRPCAddr = "node_grpc_addr"
 	KeyPath      = "key_path"
 	KeyName      = "key_name"
 	Passphrase   = "passphrase"
-	ServiceName  = "service_name"
-	Schemas      = "schemas"
-	Provider     = "provider"
-	ServiceFee   = "service_fee"
-	QoS          = "qos"
 )
 
 // Config is a config struct for IRITA-HUB
@@ -50,11 +39,6 @@ type Config struct {
 	KeyPath      string `yaml:"key_path"`
 	KeyName      string `yaml:"key_name"`
 	Passphrase   string `yaml:"passphrase"`
-	ServiceName  string `yaml:"chain_id"`// service name
-	Schemas      string `yaml:"chain_id"` // input and output schemas
-	Provider     string `yaml:"chain_id"` // service provider
-	ServiceFee   string `yaml:"chain_id"` // service fee
-	QoS          uint64 `yaml:"chain_id"`  // quality of service, in terms of the minimum response time
 }
 
 // NewConfig constructs a new Config from viper
@@ -66,10 +50,5 @@ func NewConfig(v *viper.Viper) Config {
 		KeyPath:      v.GetString(cfg.GetConfigKey(Prefix, KeyPath)),
 		KeyName:      v.GetString(cfg.GetConfigKey(Prefix, KeyName)),
 		Passphrase:   v.GetString(cfg.GetConfigKey(Prefix, Passphrase)),
-		ServiceName:  v.GetString(cfg.GetConfigKey(ServicePrefix, ServiceName)),
-		Schemas:      v.GetString(cfg.GetConfigKey(ServicePrefix, Schemas)),
-		Provider:     v.GetString(cfg.GetConfigKey(ServicePrefix, Provider)),
-		ServiceFee:   v.GetString(cfg.GetConfigKey(ServicePrefix, ServiceFee)),
-		QoS:          v.GetUint64(cfg.GetConfigKey(ServicePrefix, QoS)),
 	}
 }

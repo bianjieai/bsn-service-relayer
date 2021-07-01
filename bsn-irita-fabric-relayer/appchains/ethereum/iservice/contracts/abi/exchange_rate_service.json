@@ -1,0 +1,98 @@
+[
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_iServiceContract",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "_serviceName",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_input",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_timeout",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "bytes32",
+				"name": "_requestID",
+				"type": "bytes32"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "_rate",
+				"type": "string"
+			}
+		],
+		"name": "RequestResponded",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "bytes32",
+				"name": "_requestID",
+				"type": "bytes32"
+			}
+		],
+		"name": "RequestSent",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "_requestID",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "string",
+				"name": "_output",
+				"type": "string"
+			}
+		],
+		"name": "onResponse",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "rate",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "sendRequest",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]

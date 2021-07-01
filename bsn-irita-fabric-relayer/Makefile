@@ -11,14 +11,9 @@ endif
 
 install: go.sum
 	@echo "installing relayer..."
-	@go build -mod=readonly -o $${GOBIN-$${GOPATH-$$HOME/go}/bin}/relayer relayer/cmd/relayer
+	@go build -mod=readonly -o build/irita-fabric-relayer relayer/cmd/relayer
 
 test-eth:
 	@echo "sending the interchain request to ethereum for testing..."
 	@go test -mod=readonly -count=1 relayer/tests/ethereum
 	@echo "sent successfully"
-
-test-fisco:
-	@echo "deploying the iService contracts to FISCO BCOS for testing..."
-	@go test -mod=readonly -count=1 relayer/tests/fisco
-	@echo "deployed successfully"

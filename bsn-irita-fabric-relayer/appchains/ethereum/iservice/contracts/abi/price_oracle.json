@@ -1,0 +1,93 @@
+[
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_iServiceContract",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "_serviceName",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_input",
+				"type": "string"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "bytes32",
+				"name": "_requestID",
+				"type": "bytes32"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "_price",
+				"type": "string"
+			}
+		],
+		"name": "RequestResponded",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "bytes32",
+				"name": "_requestID",
+				"type": "bytes32"
+			}
+		],
+		"name": "RequestSent",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "_requestID",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "string",
+				"name": "_output",
+				"type": "string"
+			}
+		],
+		"name": "onResponse",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "price",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "sendRequest",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]
