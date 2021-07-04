@@ -7,7 +7,6 @@ import (
 	"relayer/appchains/fabric/config"
 	"relayer/appchains/fabric/entity"
 	"relayer/appchains/fabric/store"
-	rel_conf "relayer/config"
 	"relayer/core"
 	"relayer/errors"
 	"relayer/logging"
@@ -39,7 +38,6 @@ func NewFabricHandler(hub core.HubChainI, log *log.Logger, v *viper.Viper) *fabr
 		Logger:          log,
 		HubChain:        hub,
 		Config:          conf,
-		serviceBindInfo: rel_conf.GetServiceBindInfo(v),
 		AppChains:       make(map[string]core.AppChainI),
 	}
 
@@ -52,7 +50,6 @@ type fabricHandler struct {
 	Logger          *log.Logger
 	HubChain        core.HubChainI
 	AppChains       map[string]core.AppChainI
-	serviceBindInfo *rel_conf.ServiceBindInfo
 
 	Config *config.FabricConfig
 }
@@ -123,17 +120,6 @@ func (f *fabricHandler) RegisterChain(data []byte) (uint64, error) {
 	}
 
 	f.AppChains[rc.GetChainId()] = chain
-
-	err = chain.AddServiceBinding(f.serviceBindInfo.Name,
-		f.serviceBindInfo.Schemas,
-		f.serviceBindInfo.Provider,
-		f.serviceBindInfo.Fee,
-		f.serviceBindInfo.Qos,
-	)
-	if err != nil {
-		logging.Logger.Errorf("the appinfo AddServiceBinding failed %s", err.Error())
-		return rc.ChainId, errors.New("the appinfo AddServiceBinding failed %s", err.Error())
-	}
 
 	//以上执行成功，向数据库存储，
 	err = store.StoreRelayerAppInfo(sc)
@@ -300,70 +286,4 @@ func (r *fabricHandler) HandleInterchainRequest(chainID string, request core.Int
 
 	r.Logger.Infof("HandleInterchainRequest is End !!!")
 	return nil
-}
-
-func (f *fabricHandler) AddServiceBinding(chainId string, data []byte) error {
-
-	s := &AddServiceBindingRequest{}
-	err := json.Unmarshal(data, s)
-	if err != nil {
-		logging.Logger.Errorf("invalid JSON Params %s", err.Error())
-		return errors.New("invalid JSON Params")
-	}
-	logging.Logger.Infof("this AddServiceBinding data is %v", s)
-	app, ok := f.AppChains[chainId]
-	if ok {
-
-		err := app.AddServiceBinding(s.ServiceName, s.Schemas, s.Provider, s.ServiceFee, s.QoS)
-		if err != nil {
-			logging.Logger.Errorf("the AddServiceBinding failed %s", err.Error())
-			return errors.New("the AddServiceBinding failed")
-		}
-	}
-	return nil
-}
-
-func (f *fabricHandler) UpdateServiceBinding(chainId string, data []byte) error {
-
-	app, ok := f.AppChains[chainId]
-
-	if !ok {
-		return errors.New("ChainID does not exist")
-	}
-
-	logging.Logger.Infof("Start UpdateServiceBinding chainId:%s", chainId)
-	s := &UpdateServiceBindingRequest{}
-	err := json.Unmarshal(data, s)
-	if err != nil {
-		logging.Logger.Errorf("invalid JSON Params %s", err.Error())
-		return errors.New("invalid JSON Params")
-	}
-	logging.Logger.Infof("this UpdateServiceBinding data is %#v", s)
-
-	err = app.UpdateServiceBinding(s.ServiceName, s.Provider, s.ServiceFee, s.QoS)
-	if err != nil {
-		logging.Logger.Errorf("the UpdateServiceBinding failed %s", err.Error())
-		return errors.New("the UpdateServiceBinding failed")
-	}
-
-	return nil
-}
-
-func (f *fabricHandler) GetServiceBinding(chainId string, serviceName string) (interface{}, error) {
-
-	app, ok := f.AppChains[chainId]
-
-	if !ok {
-		return nil, errors.New("ChainID does not exist")
-	}
-
-	logging.Logger.Infof("Start GetServiceBinding chainId:%s", chainId)
-
-	serviceBindingI, err := app.GetServiceBinding(serviceName)
-	if err != nil {
-		logging.Logger.Errorf("the GetServiceBinding failed %s", err.Error())
-		return nil, errors.New("the GetServiceBinding failed")
-	}
-
-	return serviceBindingI, nil
 }

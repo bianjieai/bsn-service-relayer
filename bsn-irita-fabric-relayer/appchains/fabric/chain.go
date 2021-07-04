@@ -12,7 +12,6 @@ import (
 	"relayer/logging"
 	"time"
 
-	"relayer/appchains/fabric/iservice"
 	"relayer/core"
 
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
@@ -192,17 +191,24 @@ func (fc *FabricChain) blockevent(event *eventfab.BlockEvent) {
 						logging.Logger.Infof("chaincodeId:%s is CallService,value is %s", rw.NameSpace, w.Value)
 						reqId := w.Value
 						request, err := fc.getServiceInfo(reqId)
+						var endpointInfo EndpointInfo
+						err = json.Unmarshal([]byte(request.Request.EndpointInfo), &endpointInfo)
+						if err != nil {
+							logging.Logger.Errorf("failed to decode endpointInfo: %s", err)
+						}
 						if err == nil && request != nil && request.Response == nil {
 							event := core.InterchainRequest{
-								ID:              reqId,
-								ChainID:         fc.GetChainID(),
-								ContractAddress: rw.NameSpace,
-
-								Provider:      request.Service.Provider,
-								ServiceName:   request.Request.ServiceName,
-								Input:         request.Request.Input,
-								Timeout:       request.Request.Timeout,
-								ServiceFeeCap: request.Service.ServiceFee,
+								ID:              request.Request.RequestId,
+								SourceChainID:   fc.GetChainID(),
+								DestChainID:     endpointInfo.DestChainID,
+								DestSubChainID:  endpointInfo.DestSubChainID,
+								DestChainType:   endpointInfo.DestChainType,
+								EndpointAddress: endpointInfo.EndpointAddress,
+								EndpointType:    endpointInfo.DestChainType,
+								Method:          request.Request.Method,
+								CallData:        []byte(request.Request.CallData),
+								TxHash:          trans.TxId,
+								Sender:          trans.CreateName,
 							}
 							err = fc.handler(fc.GetChainID(), event, trans.TxId)
 							if err != nil {
@@ -337,95 +343,4 @@ func (fc *FabricChain) SendResponse(requestID string, response core.ResponseI) e
 	}
 
 	return nil
-}
-
-// AddServiceBinding implements AppChainI
-func (fc *FabricChain) AddServiceBinding(serviceName, schemas, provider, serviceFee string, qos uint64) error {
-
-	req := &serviceBindInfo{
-		Name:        serviceName,
-		Description: "",
-		Schemas:     schemas,
-		Provider:    provider,
-		ServiceFee:  serviceFee,
-		Qos:         qos,
-	}
-
-	reqb, _ := json.Marshal(req)
-	request := channel.Request{
-		ChaincodeID: fc.ChainInfo.CrossChainCode,
-		Fcn:         "addServiceBinding",
-		Args:        [][]byte{reqb},
-	}
-
-	fabres, err := fc.channelClient.Execute(request)
-	if err != nil {
-		return errors.New(fmt.Sprintf("call fabric addServiceBinding failed :%s", err))
-	}
-
-	if fabres.TxValidationCode != pb.TxValidationCode_VALID {
-		return errors.New(fmt.Sprintf("call fabric addServiceBinding TxValidationCode is %s", fabres.TxValidationCode.String()))
-	}
-
-	return nil
-}
-
-// UpdateServiceBinding implements AppChainI
-func (fc *FabricChain) UpdateServiceBinding(serviceName, provider, serviceFee string, qos uint64) error {
-
-	ureq := &updateServiceInfo{
-		ServiceName: serviceName,
-		Provider:    provider,
-		ServiceFee:  serviceFee,
-		Qos:         qos,
-	}
-	ub, _ := json.Marshal(ureq)
-
-	request := channel.Request{
-		ChaincodeID: fc.ChainInfo.CrossChainCode,
-		Fcn:         "updateServiceBinding",
-		Args:        [][]byte{ub},
-	}
-
-	fabres, err := fc.channelClient.Execute(request)
-	if err != nil {
-		return errors.New(fmt.Sprintf("call fabric updateServiceBinding failed :%s", err))
-	}
-
-	if fabres.TxValidationCode != pb.TxValidationCode_VALID {
-		return errors.New(fmt.Sprintf("call fabric updateServiceBinding TxValidationCode is %s", fabres.TxValidationCode.String()))
-	}
-
-	return nil
-}
-
-// GetServiceBinding implements AppChainI
-func (fc *FabricChain) GetServiceBinding(serviceName string) (core.ServiceBindingI, error) {
-
-	request := channel.Request{
-		ChaincodeID: fc.ChainInfo.CrossChainCode,
-		Fcn:         "getServiceBinding",
-		Args:        [][]byte{[]byte(serviceName)},
-	}
-
-	fabres, err := fc.channelClient.Query(request)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("call fabric getServiceBinding failed :%s", err))
-	}
-	if fabres.TxValidationCode != pb.TxValidationCode_VALID {
-		return nil, errors.New(fmt.Sprintf("call fabric getServiceBinding TxValidationCode is %s", fabres.TxValidationCode.String()))
-	}
-	res := &serviceBindInfo{}
-	err = json.Unmarshal(fabres.Payload, res)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("call fabric getServiceBinding Unmarshal failed :%s", err))
-	}
-
-	return iservice.ServiceBinding{
-		ServiceName: res.Name,
-		Schemas:     res.Schemas,
-		Provider:    res.Provider,
-		ServiceFee:  res.ServiceFee,
-		QoS:         res.Qos,
-	}, nil
 }

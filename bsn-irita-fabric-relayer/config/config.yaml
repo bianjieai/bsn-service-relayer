@@ -2,26 +2,26 @@ base:
     app_chain_type: fabric # application chain name
     store_path: .db # store path
     http_port: 18050
-    mysql_conn: root:123456@tcp(192.168.1.60:3306)/bsnflowdb?charset=utf8
+    mysql_conn: root:123456@tcp(127.0.0.1:3306)/relayer?charset=utf8
     city_code: ORG12345
 service:
-    service_name: call_service
+    service_name: cc-contract-call
     service_description: 'fabric-relayer'
     service_schemas: '{"input":{"type":"object"},"output":{"type:"object"}}'
-    service_provider: ''
+    service_provider: 'iaa1fe6gm5kyam6xfs0wngw3d23l9djlyw82xxcjm2'
     service_fee: '1point'
     service_qos: 100
 # irita-hub config
 hub:
-    chain_id: irita-hub
+    chain_id: irita
     node_rpc_addr: http://127.0.0.1:26657
     node_grpc_addr: 127.0.0.1:9090
     key_path: .keys
-    key_name: relayer
-    passphrase: 12345678
+    key_name: node0
+    passphrase: 1234567890
 
 # fabric config
 fabric:
-    sdk_config: /root/config.yaml
+    sdk_config: /Users/bianjie/BSN/bsnhub-service-relayer/bsn-irita-fabric-relayer/appchains/fabric/config/conf/sdkconfig.yaml
     msp_user_name: Admin
     org_name: org1.example.com
