@@ -2,50 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1714de5e-cc56-42dc-abb1-ce5e4b832ea1" name="默认变更列表" comment="">
-      <change afterPath="$PROJECT_DIR$/keys/nodekey.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/appchainhandler.go" beforeDir="false" afterPath="$PROJECT_DIR$/appchains/appchainhandler.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/chain.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/config.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/iservice/contracts/abi/exchange_rate_service.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/iservice/contracts/abi/iservice_core_ex.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/iservice/contracts/abi/iservice_market_ex.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/iservice/contracts/abi/price_oracle.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/iservice/contracts/src/iServiceClient.sol" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/iservice/contracts/src/iServiceCoreEx.sol" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/iservice/contracts/src/iServiceDelegator.sol" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/iservice/contracts/src/iServiceMarketEx.sol" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/iservice/contracts/src/interfaces/iServiceInterface.sol" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/iservice/contracts/src/interfaces/iServiceMarketInterface.sol" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/iservice/contracts/src/tests/ExchangeRateConsumer.sol" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/iservice/contracts/src/tests/Oracle.sol" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/iservice/contracts/src/vendor/Ownable.sol" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/iservice/iservice_core_ex.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/iservice/iservice_market_ex.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/iservice/types.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/ethereum/utils.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/fabric/chain.go" beforeDir="false" afterPath="$PROJECT_DIR$/appchains/fabric/chain.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/fabric/chainhandler.go" beforeDir="false" afterPath="$PROJECT_DIR$/appchains/fabric/chainhandler.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/fabric/config/conf/sdkconfig.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/appchains/fabric/config/conf/sdkconfig.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/fabric/entity.go" beforeDir="false" afterPath="$PROJECT_DIR$/appchains/fabric/entity.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/fabric/iservice/chaincode/crossChainCode/chaincode.go" beforeDir="false" afterPath="$PROJECT_DIR$/appchains/fabric/iservice/chaincode/crossChainCode/chaincode.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/appchains/fabric/iservice/chaincode/crossChainCode/chaincode_core_ex.go" beforeDir="false" afterPath="$PROJECT_DIR$/appchains/fabric/iservice/chaincode/crossChainCode/chaincode_core_ex.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/fabric/iservice/chaincode/crossChainCode/chaincode_market_ex.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/appchains/fabric/iservice/chaincode/crossChainCode/entity.go" beforeDir="false" afterPath="$PROJECT_DIR$/appchains/fabric/iservice/chaincode/crossChainCode/entity.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/relayer/appchain.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/relayer/root.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/relayer/root.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/common/utils.go" beforeDir="false" afterPath="$PROJECT_DIR$/common/utils.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/chain.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/chain.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hub/base.go" beforeDir="false" afterPath="$PROJECT_DIR$/hub/base.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/hub/chain.go" beforeDir="false" afterPath="$PROJECT_DIR$/hub/chain.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hub/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/hub/config.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/web.go" beforeDir="false" afterPath="$PROJECT_DIR$/server/web.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../bsn-irita-fisco-relayer/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../bsn-irita-fisco-relayer/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../bsn-irita-fisco-relayer/appchains/fisco/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/../bsn-irita-fisco-relayer/appchains/fisco/config.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../bsn-irita-fisco-relayer/config/config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../bsn-irita-fisco-relayer/config/config.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../bsn-irita-fisco-relayer/tests/fisco/fisco_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/../bsn-irita-fisco-relayer/tests/fisco/fisco_test.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -98,6 +59,15 @@
     </key>
   </component>
   <component name="RunManager" selected="Go 构建.go build relayer/cmd/relayer">
+    <configuration name="go build relayer/appchains/fabric/iservice/chaincode" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+      <module name="bsn-irita-fabric-relayer" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <filePath value="$PROJECT_DIR$/appchains/fabric/iservice/chaincode/main.go" />
+      <package value="relayer/appchains/fabric/iservice/chaincode" />
+      <directory value="$PROJECT_DIR$" />
+      <method v="2" />
+    </configuration>
     <configuration name="go build relayer/cmd/relayer" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="bsn-irita-fabric-relayer" />
       <working_directory value="$PROJECT_DIR$" />
@@ -117,6 +87,7 @@
     <recent_temporary>
       <list>
         <item itemvalue="Go 构建.go build relayer/cmd/relayer" />
+        <item itemvalue="Go 构建.go build relayer/appchains/fabric/iservice/chaincode" />
         <item itemvalue="Makefile.install" />
       </list>
     </recent_temporary>
@@ -142,16 +113,5 @@
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/appchains/fabric/chainhandler.go</url>
-          <line>226</line>
-          <option name="timeStamp" value="10" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>

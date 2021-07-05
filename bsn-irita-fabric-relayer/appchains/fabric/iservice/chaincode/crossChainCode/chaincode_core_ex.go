@@ -36,8 +36,12 @@ func (c *CrossChainCode) sendRequest(stub shim.ChaincodeStubInterface, args []st
 	serReq.EndpointInfo = args[0]
 	serReq.Method = args[1]
 	serReq.CallData = args[2]
-	serReq.CallBack.ChainCode = args[3]
-	serReq.CallBack.FuncName = args[4]
+
+	callBackInfo := &CallBackInfo{}
+	callBackInfo.ChainCode = args[3]
+	callBackInfo.FuncName = args[4]
+
+	serReq.CallBack = callBackInfo
 
 	callser := &serviceCallInfo{
 		Request: serReq,

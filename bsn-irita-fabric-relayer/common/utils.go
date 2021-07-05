@@ -30,6 +30,6 @@ func Hex2Decimal(hex string) (int64, error) {
 }
 
 // GetChainID returns the unique chain id from the specified chain params
-func GetDestID(chainType string, groupID string, chainID string) string {
-	return fmt.Sprintf("%s-%d-%d", chainType, groupID, chainID)
+func GetDestID(chainType string, subChainID string, chainID string) string {
+	return fmt.Sprintf("%s-%s-%s", chainType, subChainID, chainID)
 }

@@ -71,19 +71,19 @@ func NewIritaHubChain(
 
 
 	if len(serviceName) == 0 {
-		keyPath = defaultServiceName
+		serviceName = defaultServiceName
 	}
 
 	if len(schemas) == 0 {
-		keyPath = defaultSchemas
+		schemas = defaultSchemas
 	}
 
 	if len(provider) == 0 {
-		keyPath = defaultProvider
+		provider = defaultProvider
 	}
 
 	if len(serviceFee) == 0 {
-		keyPath = defaultServiceFee
+		serviceFee = defaultServiceFee
 	}
 
 	if qos == 0 {
