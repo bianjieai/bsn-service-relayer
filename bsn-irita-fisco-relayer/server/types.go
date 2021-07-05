@@ -27,7 +27,7 @@ type ChainStatus struct {
 type SuccessResponse struct {
 	Code   int         `json:"code"`
 	Msg    string      `json:"msg"`
-	Result interface{} `json:"result,omitempty"`
+	Result interface{} `json:"data,omitempty"`
 }
 
 // ErrorResponse defines the response on error
