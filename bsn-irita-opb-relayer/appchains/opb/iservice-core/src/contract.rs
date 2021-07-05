@@ -69,19 +69,26 @@ pub fn send_request(deps: DepsMut,endpoint_info: String, _method: String, call_d
 }
 
 pub fn set_response(deps: DepsMut,request_id: String,err_msg: String, output: String) -> Result<HandleResponse, ContractError> {
-    let callback = CALLBACKS.load(deps.storage, &request_id)?;
-    let msg = to_binary(&output)?;
-    let msgs = vec![CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: callback.address,
-        msg: msg,
-        send: vec![],
-    })];
-    
-    Ok(HandleResponse {
-        messages: msgs,
-        data: None,
-        attributes: vec![],
-    })
+    let executed = REQUESTS.load(deps.storage, &request_id);
+    if executed.is_ok() {
+        Err(ContractError::Unauthorized{})
+    }else{
+        let callback = CALLBACKS.load(deps.storage, &request_id)?;
+        let msg = to_binary(&output)?;
+        let msgs = vec![CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: callback.address,
+            msg: msg,
+            send: vec![],
+        })];
+
+        REQUESTS.save(deps.storage, &request_id, &true)?;
+        
+        Ok(HandleResponse {
+            messages: msgs,
+            data: None,
+            attributes: vec![],
+        })
+    }
 }
 
 pub fn set_relayer(deps: DepsMut, relayer: Option<HumanAddr>, caller:HumanAddr) -> Result<HandleResponse, ContractError> {
@@ -99,7 +106,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 }
 
 fn query_request(deps: Deps,requst_id: String) -> StdResult<bool> {
-    let state = REQUESTS.load(deps.storage,requst_id.as_bytes())?;
+    let state = REQUESTS.load(deps.storage,&requst_id)?;
     Ok(state)
 }
 

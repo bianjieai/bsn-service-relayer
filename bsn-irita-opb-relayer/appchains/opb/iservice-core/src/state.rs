@@ -9,7 +9,7 @@ use cosmwasm_std::HumanAddr;
 use cw_storage_plus::{Map,Item};
 
 // REQUESTS stores the requests whether the response has been returned: <request_id, responded>
-pub const REQUESTS: Map<&[u8], bool> = Map::new("people");
+pub const REQUESTS: Map<&str, bool> = Map::new("requests");
 
 // CALLBACKS stores the requests whether the response has been returned: <request_id, callback>
 pub const CALLBACKS: Map<&str, Callback> = Map::new("callbacks");
