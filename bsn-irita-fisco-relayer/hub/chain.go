@@ -8,11 +8,11 @@ import (
 	"github.com/irisnet/service-sdk-go/service"
 	"github.com/irisnet/service-sdk-go/types"
 	"github.com/irisnet/service-sdk-go/types/store"
+	"time"
 	"relayer/common"
 	"relayer/core"
 	"relayer/logging"
 	"relayer/mysql"
-	"time"
 )
 
 type ServiceInfo struct {
@@ -261,6 +261,7 @@ func (ic IritaHubChain) ResponseListener(reqCtxID string, requestID string, cb c
 			status, err2 := ic.ServiceClient.Status(context.Background())
 			req, err3 := ic.ServiceClient.QueryServiceRequest(requestID)
 			if err != nil || err2 != nil || err3 != nil || reqCtx.BatchState == "BATCH_COMPLETED" || status.SyncInfo.LatestBlockHeight > req.ExpirationHeight {
+				logging.Logger.Infof("HUB Unsubscribe RequestID is %s", requestID)
 				_ = ic.ServiceClient.Unsubscribe(subscription)
 				break
 			}

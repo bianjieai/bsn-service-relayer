@@ -34,7 +34,7 @@ func (suite *FISCOTestSuite) SetupTest() {
 func (suite *FISCOTestSuite) TestDeployIServiceContracts() {
 	transactOpts := suite.client.GetTransactOpts()
 	// deploy iservice core extension contract
-	iserviceCoreAddr, tx, _, err := iservice.DeployIServiceCoreEx(transactOpts, suite.client, transactOpts.From)
+	iserviceCoreAddr, tx, _, err := iservice.DeployIServiceCoreEx(transactOpts, suite.client, transactOpts.From, "")
 	suite.NoError(err)
 
 	fmt.Printf("iservice core extension deployed, contract address: %s, tx hash: %s", iserviceCoreAddr.String(), tx.Hash().String())

@@ -13,13 +13,17 @@ hub:
 
 # fisco config
 fisco:
+    chainId: 1
     monitor_interval: 1 # chain monitoring interval in seconds
     connection_type: channel
-    ca_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/ca.crt
-    cert_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/sdk.crt
-    key_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/sdk.key
+    ca_file: /Users/bianjie/BSN/bsnhub-service-relayer/bsn-irita-fisco-relayer/keys/ca.crt
+    cert_file: /Users/bianjie/BSN/bsnhub-service-relayer/bsn-irita-fisco-relayer/keys/sdk.crt
+    key_file: /Users/bianjie/BSN/bsnhub-service-relayer/bsn-irita-fisco-relayer/keys/sdk.key
     sm_crypto: true
-    priv_key_file: /Users/bianjie/BSN/bsnhub-service-relayer/keys/key.pem
+    priv_key_file: /Users/bianjie/BSN/bsnhub-service-relayer/bsn-irita-fisco-relayer/keys/key.pem
+    nodes:
+        fisco1.bsnbase.com: 192.168.1.72:20200
+        fisco2.bsnbase.com: 192.168.1.72:20201
 
 # mysql config
 mysql:
@@ -32,7 +36,7 @@ mysql:
 # service config
 service:
     service_name: cc-contract-call
-    schemas: wd
+    schemas:  '{"input":{"type":"object"},"output":{"type:"object"}}'
     provider: iaa1fe6gm5kyam6xfs0wngw3d23l9djlyw82xxcjm2
     service_fee: 1000000upoint
     qos: 100
