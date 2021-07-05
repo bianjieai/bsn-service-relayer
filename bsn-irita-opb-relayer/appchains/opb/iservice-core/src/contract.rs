@@ -68,20 +68,25 @@ pub fn send_request(deps: DepsMut,endpoint_info: String, _method: String, call_d
     })
 }
 
-pub fn set_response(deps: DepsMut,request_id: String,err_msg: String, output: String) -> Result<HandleResponse, ContractError> {
+pub fn set_response(deps: DepsMut,request_id: String, err_msg: String, output: String) -> Result<HandleResponse, ContractError> {
     let executed = REQUESTS.load(deps.storage, &request_id);
     if executed.is_ok() {
         Err(ContractError::Unauthorized{})
     }else{
+        let mut result = err_msg;
+        if output.len()>0 {
+            result = output;
+        }
+
+        REQUESTS.save(deps.storage, &request_id, &true)?;
+
         let callback = CALLBACKS.load(deps.storage, &request_id)?;
-        let msg = to_binary(&output)?;
+        let msg = to_binary(&result)?;
         let msgs = vec![CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: callback.address,
             msg: msg,
             send: vec![],
         })];
-
-        REQUESTS.save(deps.storage, &request_id, &true)?;
         
         Ok(HandleResponse {
             messages: msgs,
