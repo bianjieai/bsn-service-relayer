@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryMsg",
+  "anyOf": [
+    {
+      "type": "object",
+      "required": [
+        "get_reuqest"
+      ],
+      "properties": {
+        "get_reuqest": {
+          "type": "object",
+          "required": [
+            "requst_id"
+          ],
+          "properties": {
+            "requst_id": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_sequence"
+      ],
+      "properties": {
+        "get_sequence": {
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_relayer"
+      ],
+      "properties": {
+        "get_relayer": {
+          "type": "object"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HandleMsg",
+  "anyOf": [
+    {
+      "type": "object",
+      "required": [
+        "send_request"
+      ],
+      "properties": {
+        "send_request": {
+          "type": "object",
+          "required": [
+            "call_data",
+            "callback_address",
+            "callback_function",
+            "endpoint_info",
+            "method"
+          ],
+          "properties": {
+            "call_data": {
+              "$ref": "#/definitions/Binary"
+            },
+            "callback_address": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "callback_function": {
+              "type": "string"
+            },
+            "endpoint_info": {
+              "type": "string"
+            },
+            "method": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "set_response"
+      ],
+      "properties": {
+        "set_response": {
+          "type": "object",
+          "required": [
+            "err_msg",
+            "output",
+            "request_id"
+          ],
+          "properties": {
+            "err_msg": {
+              "type": "string"
+            },
+            "output": {
+              "type": "string"
+            },
+            "request_id": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "set_relayer"
+      ],
+      "properties": {
+        "set_relayer": {
+          "type": "object",
+          "properties": {
+            "relayer": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/HumanAddr"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "Binary": {
+      "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>",
+      "type": "string"
+    },
+    "HumanAddr": {
+      "type": "string"
+    }
+  }
+}
