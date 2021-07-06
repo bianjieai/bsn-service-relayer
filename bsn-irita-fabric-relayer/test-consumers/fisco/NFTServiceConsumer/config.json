@@ -1,0 +1,23 @@
+{
+    "encryptType": "SM_CRYPTO",
+    "accounts": {
+        "alice": {
+            "type": "pem",
+            "value": "/Users/bianjie/develop/bcossdk/go-sdk/.ci/sm2p256v1_0x791a0073e6dfd9dc5e5061aebc43ab4f7aa4ae8b.pem"
+        }
+    },
+    "nodes": [
+        {
+            "ip": "60.247.61.162",
+            "port": "20200"
+        }
+    ],
+    "authentication": {
+        "key": "../../../appchains/fisco/.keys/sdk.key",
+        "cert": "../../../appchains/fisco/.keys/sdk.crt",
+        "ca": "../../../appchains/fisco/.keys/ca.crt"
+    },
+    "groupID": 1,
+    "chainID": 1,
+    "timeout": 10000
+}
