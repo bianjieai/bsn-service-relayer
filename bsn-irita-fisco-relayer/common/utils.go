@@ -31,5 +31,8 @@ func Hex2Decimal(hex string) (int64, error) {
 
 // GetChainID returns the unique chain id from the specified chain params
 func GetDestID(chainType string, groupID string, chainID string) string {
-	return fmt.Sprintf("%s-%d-%d", chainType, groupID, chainID)
+	if len(groupID) == 0 {
+		return fmt.Sprintf("%s-%s", chainType, chainID)
+	}
+	return fmt.Sprintf("%s-%s-%s", chainType, groupID, chainID)
 }
