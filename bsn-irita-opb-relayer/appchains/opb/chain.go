@@ -1,35 +1,31 @@
-package fisco
+package opb
 
 import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	sdk "github.com/bianjieai/irita-sdk-go"
+	"github.com/bianjieai/irita-sdk-go/modules/wasm"
+	"github.com/bianjieai/irita-sdk-go/types"
+	sdktypes "github.com/bianjieai/irita-sdk-go/types"
+	sdkstore "github.com/bianjieai/irita-sdk-go/types/store"
+	abci "github.com/tendermint/tendermint/abci/types"
+	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	"strings"
 	"time"
 
-	ethcmn "github.com/ethereum/go-ethereum/common"
-
-	"github.com/FISCO-BCOS/go-sdk/abi"
-	fiscoclient "github.com/FISCO-BCOS/go-sdk/client"
-	"github.com/FISCO-BCOS/go-sdk/core/types"
-
-	"relayer/appchains/opb/iservice"
-	"relayer/common"
 	"relayer/core"
 	"relayer/logging"
 	"relayer/mysql"
 	"relayer/store"
 )
 
-// FISCOChain defines the FISCO chain
-type FISCOChain struct {
-	Config  Config
-	Client  *fiscoclient.Client
-	ChainID string // unique chain ID
-
-	IServiceCoreSession *iservice.IServiceCoreExSession // iService Core Extension contract session
-	IServiceCoreABI     abi.ABI                         // parsed iService Core Extension ABI
+// opbChain defines the opb chain
+type OpbChain struct {
+	Config    Config
+	OpbClient sdk.IRITAClient
+	ChainID   string // unique chain ID
 
 	store      *store.Store // store backend instance
 	lastHeight int64        // last height
@@ -39,63 +35,65 @@ type FISCOChain struct {
 }
 
 // NewFISCOChain constructs a new FISCOChain instance
-func NewFISCOChain(
+func NewOpbChain(
 	config Config,
 	store *store.Store,
-) (*FISCOChain, error) {
-	clientConfig := BuildClientConfig(config)
+) (*OpbChain, error) {
+	//将接口传递的节点名称通过配置转换为 节点地址，如果不在配置中，不转换
+	//随机取一个传入的node
+	nodeName := randURL(config.ChainParams.NodeURLs)
+	var rpcAddr string
+	var grpcAddr string
+	//获取配置的nodeURL
+	rpcAddrstr, ok := config.RpcAddrsMap[nodeName]
+	if ok {
+		rpcAddr = rpcAddrstr
+	}
+	grpcAddrstr, ok := config.GrpcAddrsMap[nodeName]
+	if ok {
+		grpcAddr = grpcAddrstr
+	}
 
-	client, err := fiscoclient.Dial(clientConfig)
+	options := []sdktypes.Option{
+		sdktypes.CachedOption(true),
+		sdktypes.KeyDAOOption(sdkstore.NewFileDAO(config.KeyPath)),
+	}
+
+	clientConfig, err := sdktypes.NewClientConfig(rpcAddr, grpcAddr, config.BaseConfig.ChainId, options...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to fisco node: %s", err)
+		return nil, fmt.Errorf("failed to init clientConfig: %s", err)
 	}
-
-	iServiceCoreABI, err := abi.JSON(strings.NewReader(iservice.IServiceCoreExABI))
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse iService Core Extension ABI: %s", err)
-	}
-
-	iServiceCore, err := iservice.NewIServiceCoreEx(ethcmn.HexToAddress(config.IServiceCoreAddr), client)
-	if err != nil {
-		return nil, fmt.Errorf("failed to instantiate the iService Core Extension contract: %s", err)
-	}
-
-	if config.MonitorInterval == 0 {
-		config.MonitorInterval = DefaultMonitorInterval
-	}
-
+	opbClient := sdk.NewIRITAClient(clientConfig)
 	chainID := GetChainID(config.ChainParams)
 
-	fisco := &FISCOChain{
-		Config:              config,
-		Client:              client,
-		ChainID:             chainID,
-		IServiceCoreSession: &iservice.IServiceCoreExSession{Contract: iServiceCore, CallOpts: *client.GetCallOpts(), TransactOpts: *client.GetTransactOpts()},
-		IServiceCoreABI:     iServiceCoreABI,
-		store:               store,
-		done:                true,
+	opb := &OpbChain{
+		Config:    config,
+		OpbClient: opbClient,
+		ChainID:   chainID,
+		store:     store,
+		done:      true,
 	}
 
-	err = fisco.storeChainParams()
+	err = opb.storeChainParams()
 	if err != nil {
 		return nil, err
 	}
 
-	err = fisco.storeChainID()
+	err = opb.storeChainID()
 	if err != nil {
 		return nil, err
 	}
 
 	store.GetInt64(HeightKey(chainID))
 
-	return fisco, nil
+	return opb, nil
 }
 
 // BuildFISCOChain builds a FISCOChain instance from the given chain params and store
-func BuildFISCOChain(
+func BuildOpbChain(
 	chainParams []byte,
 	store *store.Store,
-) (*FISCOChain, error) {
+) (*OpbChain, error) {
 	var params ChainParams
 	err := json.Unmarshal(chainParams, &params)
 	if err != nil {
@@ -118,32 +116,32 @@ func BuildFISCOChain(
 		ChainParams: params,
 	}
 
-	return NewFISCOChain(config, store)
+	return NewOpbChain(config, store)
 }
 
 // GetChainID implements AppChainI
-func (f *FISCOChain) GetChainID() string {
-	return f.ChainID
+func (opb *OpbChain) GetChainID() string {
+	return opb.ChainID
 }
 
 // Start implements AppChainI
-func (f *FISCOChain) Start(handler core.InterchainRequestHandler) error {
-	if !f.done {
-		return fmt.Errorf("chain %s has been started", f.ChainID)
+func (opb *OpbChain) Start(handler core.InterchainRequestHandler) error {
+	if !opb.done {
+		return fmt.Errorf("chain %s has been started", opb.ChainID)
 	}
 
-	f.done = false
-	f.handler = handler
+	opb.done = false
+	opb.handler = handler
 
-	go f.monitor()
+	go opb.monitor()
 
-	logging.Logger.Infof("chain %s started", f.ChainID)
+	logging.Logger.Infof("chain %s started", opb.ChainID)
 
 	return nil
 }
 
 // Stop implements AppChainI
-func (f *FISCOChain) Stop() error {
+func (f *OpbChain) Stop() error {
 	logging.Logger.Infof("stopping chain %s", f.ChainID)
 	f.done = true
 
@@ -151,12 +149,12 @@ func (f *FISCOChain) Stop() error {
 }
 
 // GetHeight implements AppChainI
-func (f *FISCOChain) GetHeight() int64 {
+func (f *OpbChain) GetHeight() int64 {
 	return f.lastHeight
 }
 
 // SendResponse implements AppChainI
-func (f *FISCOChain) SendResponse(requestID string, response core.ResponseI) error {
+func (opb *OpbChain) SendResponse(requestID string, response core.ResponseI) error {
 	requestIDBytes, err := hex.DecodeString(requestID)
 	if err != nil {
 		return err
@@ -164,18 +162,23 @@ func (f *FISCOChain) SendResponse(requestID string, response core.ResponseI) err
 
 	var requestID32Bytes [32]byte
 	copy(requestID32Bytes[:], requestIDBytes)
-
-	tx, _, err := f.IServiceCoreSession.SetResponse(requestID32Bytes, response.GetErrMsg(), response.GetOutput())
+	execAbi := wasm.NewContractABI().
+		WithMethod("set_response").
+		WithArgs("request_id", requestID32Bytes).
+		WithArgs("err_msg", response.GetErrMsg()).
+		WithArgs("output", response.GetOutput())
+	resultTx, err := opb.OpbClient.WASM.Execute(opb.Config.ChainParams.IServiceCoreAddr, execAbi, nil, opb.BuildBaseTx())
 	if err != nil {
 		mysql.TxErrCollection(requestID, err.Error())
 		return err
 	}
 
 	// TODO
-	mysql.OnInterchainRequestResponseSent(requestID, tx.Hash().Hex())
+	mysql.OnInterchainRequestResponseSent(requestID, resultTx.Hash)
 
-	err = f.waitForReceipt(tx, "SetResponse")
+	err = opb.waitForSuccess(resultTx.Hash, "SetResponse")
 	if err != nil {
+		mysql.TxErrCollection(requestID, err.Error())
 		return err
 	}
 
@@ -185,89 +188,115 @@ func (f *FISCOChain) SendResponse(requestID string, response core.ResponseI) err
 	return nil
 }
 
+// waitForSuccess waits for the receipt of the given tx
+func (opb *OpbChain) waitForSuccess(txHash string,name string) error {
+	logging.Logger.Infof("%s: transaction sent to %s, hash: %s", name, opb.GetChainID(), txHash)
+
+	tx, _:= opb.OpbClient.QueryTx(txHash)
+	if tx.Result.Code != 0{
+		return fmt.Errorf("transaction %s execution failed: %s", txHash, tx.Result.Log)
+	}
+
+	logging.Logger.Infof("%s: transaction %s execution succeeded", name, txHash)
+
+	return nil
+}
+
+// BuildBaseTx builds a base tx
+func (opb *OpbChain) BuildBaseTx() types.BaseTx {
+	return types.BaseTx{
+		From:     opb.Config.KeyName,
+		Password: opb.Config.Passphrase,
+		Mode:     sdktypes.Commit,
+	}
+}
+
 // buildInterchainRequest builds an interchain request from the interchain event
-func (f *FISCOChain) buildInterchainRequest(e *iservice.IServiceCoreExCrossChainRequestSent) core.InterchainRequest {
+func (opb *OpbChain) buildInterchainRequest(e abci.Event) core.InterchainRequest {
+	requestID, err := opb.getAttributeValue(e, "request_id")
+	if err != nil {
+		logging.Logger.Errorf("failed to get requestID: %s", err)
+	}
+	endpointInfoStr, err := opb.getAttributeValue(e, "endpoint_info")
+	if err != nil {
+		logging.Logger.Errorf("failed to get endpointInfo: %s", err)
+	}
+	method, err := opb.getAttributeValue(e, "method")
+	if err != nil {
+		logging.Logger.Errorf("failed to get method: %s", err)
+	}
+	callData, err := opb.getAttributeValue(e, "callData")
+	if err != nil {
+		logging.Logger.Errorf("failed to get callData: %s", err)
+	}
 	var endpointInfo EndpointInfo
-	err := json.Unmarshal([]byte(e.EndpointInfo), &endpointInfo)
+	err = json.Unmarshal([]byte(endpointInfoStr), &endpointInfo)
 	if err != nil {
 		logging.Logger.Errorf("failed to decode endpointInfo: %s", err)
 	}
 	return core.InterchainRequest{
-		ID:              hex.EncodeToString(e.RequestID[:]),
-		SourceChainID:   f.ChainID,
+		ID:              requestID,
+		SourceChainID:   opb.ChainID,
 		DestChainID:     endpointInfo.DestChainID,
 		DestSubChainID:  endpointInfo.DestSubChainID,
 		DestChainType:   endpointInfo.DestChainType,
 		EndpointAddress: endpointInfo.EndpointAddress,
 		EndpointType:    endpointInfo.EndpointType,
-		Method:          e.Method,
-		CallData:        e.CallData,
-		Sender:          e.Sender.String(),
+		Method:          method,
+		CallData:        []byte(callData),
 	}
-}
-
-// waitForReceipt waits for the receipt of the given tx
-func (f *FISCOChain) waitForReceipt(tx *types.Transaction, name string) error {
-	logging.Logger.Infof("%s: transaction sent to %s, hash: %s", name, f.GetChainID(), tx.Hash().Hex())
-
-	receipt, err := f.Client.WaitMined(tx)
-	if err != nil {
-		return fmt.Errorf("failed to mint the transaction %s: %s", tx.Hash().Hex(), err)
-	}
-
-	if receipt.Status != types.Success {
-		return fmt.Errorf("transaction %s execution failed: %s", tx.Hash().Hex(), receipt.GetErrorMessage())
-	}
-
-	logging.Logger.Infof("%s: transaction %s execution succeeded", name, tx.Hash().Hex())
-
-	return nil
 }
 
 // monitor is responsible for monitoring the chain
-func (f *FISCOChain) monitor() {
+func (opb *OpbChain) monitor() {
 	for {
-		f.scan()
+		opb.scan()
 
-		if f.done {
+		if opb.done {
 			return
 		}
 
-		time.Sleep(time.Duration(f.Config.MonitorInterval) * time.Second)
+		time.Sleep(time.Duration(opb.Config.MonitorInterval) * time.Second)
 	}
 }
 
 // scan performs chain scanning
-func (f *FISCOChain) scan() {
-	currentHeight, err := f.getBlockNumber()
+func (opb *OpbChain) scan() {
+	currentHeight, err := opb.getBlockNumber()
 	if err != nil {
 		logging.Logger.Errorf("failed to get the current block height: %s", err)
 		return
 	}
 
-	if f.lastHeight == 0 {
-		f.lastHeight = currentHeight - 1
+	if opb.lastHeight == 0 {
+		opb.lastHeight = currentHeight - 1
 	}
 
-	if currentHeight <= f.lastHeight {
+	if currentHeight <= opb.lastHeight {
 		return
 	}
 
-	f.scanBlocks(f.lastHeight+1, currentHeight)
+	opb.scanBlocks(opb.lastHeight+1, currentHeight)
 }
 
 // scanBlocks scans the blocks of the specified range
-func (f *FISCOChain) scanBlocks(startHeight int64, endHeight int64) {
+func (opb *OpbChain) scanBlocks(startHeight int64, endHeight int64) {
 	for h := startHeight; h <= endHeight; {
-		block, err := f.getBlock(h)
+		blockResult, err := opb.OpbClient.BlockResults(context.Background(), &h)
 		if err != nil {
 			logging.Logger.Errorf(err.Error())
+			time.Sleep(time.Duration(5) * time.Second)
 			continue
 		}
+		block, err := opb.OpbClient.Block(context.Background(), &h)
+		if err != nil {
+			logging.Logger.Errorf(err.Error())
+			time.Sleep(time.Duration(5) * time.Second)
+			continue
+		}
+		opb.parseCrossChainRequest(blockResult.TxsResults, block)
 
-		f.parseInterchainEventsFromBlock(block)
-
-		err = f.updateHeight(h)
+		err = opb.updateHeight(h)
 		if err != nil {
 			logging.Logger.Errorf("failed to update height: %s", err)
 		}
@@ -277,76 +306,42 @@ func (f *FISCOChain) scanBlocks(startHeight int64, endHeight int64) {
 }
 
 // getBlockNumber retrieves the current block number
-func (f *FISCOChain) getBlockNumber() (int64, error) {
-	blockNumber, err := f.Client.GetBlockNumber(context.Background())
+func (opb *OpbChain) getBlockNumber() (int64, error) {
+	resultState, err := opb.OpbClient.Status(context.Background())
 	if err != nil {
 		return -1, err
 	}
 
-	blockNumberStr := string(blockNumber)
-
-	return common.Hex2Decimal(blockNumberStr[3 : len(blockNumberStr)-1])
-}
-
-// getBlock gets the block in the given height
-func (f *FISCOChain) getBlock(height int64) (block CompactBlock, err error) {
-	blockBz, err := f.Client.GetBlockByNumber(context.Background(), fmt.Sprintf("0x%x", height), false)
-	if err != nil {
-		return block, fmt.Errorf("failed to retrieve the block, height: %d, err: %s", height, err)
-	}
-
-	err = json.Unmarshal(blockBz, &block)
-	if err != nil {
-		return block, fmt.Errorf("failed to unmarshal the block, height: %d, err: %s", height, err)
-	}
-
-	return
-}
-
-// parseInterchainEventsFromBlock parses the interchain events from the block
-func (f *FISCOChain) parseInterchainEventsFromBlock(block CompactBlock) {
-	for _, txHash := range block.Txs {
-		receipt, err := f.Client.GetTransactionReceipt(context.Background(), txHash)
-		if err != nil {
-			logging.Logger.Errorf("failed to get the receipt, tx: %s, err: %s", txHash, err)
-			continue
-		}
-
-		if receipt.Status != types.Success {
-			continue
-		}
-
-		f.parseCrossChaiRequestSentEvents(receipt)
-	}
+	return resultState.SyncInfo.LatestBlockHeight,nil
 }
 
 // parseServiceInvokedEvents parses the ServiceInvoked events from the receipt
-func (f *FISCOChain) parseCrossChaiRequestSentEvents(receipt *types.Receipt) {
-	for _, log := range receipt.Logs {
-		if !strings.EqualFold(log.Address, f.Config.IServiceCoreAddr) {
-			continue
+func (opb *OpbChain) parseCrossChainRequest(txResults []*abci.ResponseDeliverTx, block *ctypes.ResultBlock) {
+	for i, txResult := range txResults {
+		for _, e := range txResult.Events {
+			if e.Type == "wasm"{
+				contractAddr, _ := opb.getAttributeValue(e, "contract_address")
+				if contractAddr == opb.Config.ChainParams.IServiceCoreAddr{
+					request := opb.buildInterchainRequest(e)
+					opb.handler(opb.ChainID, request, strings.ToUpper(hex.EncodeToString(block.Block.Txs[i].Hash())))
+				}
+			}
 		}
-
-		data, err := hex.DecodeString(log.Data[2:])
-		if err != nil {
-			logging.Logger.Errorf("failed to decode the log data: %s", err)
-			continue
-		}
-
-		var event iservice.IServiceCoreExCrossChainRequestSent
-		err = f.IServiceCoreABI.Unpack(&event, "CrossChainRequestSent", data)
-		if err != nil {
-			logging.Logger.Errorf("failed to unpack the log data: %s", err)
-			continue
-		}
-
-		request := f.buildInterchainRequest(&event)
-		f.handler(f.ChainID, request, receipt.TransactionHash)
 	}
 }
 
+func (opb *OpbChain) getAttributeValue(event abci.Event, attributeKey string) (string, error) {
+	for _, attr := range event.Attributes {
+		if string(attr.Key) == attributeKey {
+			return string(attr.Value), nil
+		}
+	}
+
+	return "", fmt.Errorf("attribute key %s does not exist", attributeKey)
+}
+
 // storeChainParams stores the chain params
-func (f *FISCOChain) storeChainParams() error {
+func (f *OpbChain) storeChainParams() error {
 	bz, err := json.Marshal(f.Config.ChainParams)
 	if err != nil {
 		return err
@@ -355,7 +350,7 @@ func (f *FISCOChain) storeChainParams() error {
 	return f.store.Set(ChainParamsKey(f.ChainID), bz)
 }
 
-func (f *FISCOChain) storeChainID() error {
+func (f *OpbChain) storeChainID() error {
 	chainIDsbz, err := f.store.Get([]byte("chainIDs"))
 	if err != nil {
 		return err
@@ -365,13 +360,13 @@ func (f *FISCOChain) storeChainID() error {
 	if err != nil {
 		return err
 	}
-	chainIDs[f.ChainID] = "fisco"
+	chainIDs[f.ChainID] = "opb"
 	bz, err := json.Marshal(chainIDs)
 	return f.store.Set([]byte("chainIDs"), bz)
 }
 
 // updateHeight updates the height
-func (f *FISCOChain) updateHeight(height int64) error {
+func (f *OpbChain) updateHeight(height int64) error {
 	f.lastHeight = height
 	return f.store.SetInt64(HeightKey(f.ChainID), height)
 }

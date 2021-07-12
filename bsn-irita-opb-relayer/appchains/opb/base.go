@@ -1,4 +1,4 @@
-package fisco
+package opb
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	ChainType              = "fisco"
+	ChainType              = "opb"
 	DefaultMonitorInterval = 1 // 1 second by default
 )
 
@@ -18,7 +18,6 @@ type CompactBlock struct {
 // ChainParams defines the params for the specific chain
 type ChainParams struct {
 	NodeURLs         []string `json:"nodes"`
-	GroupID          int      `json:"groupId"`
 	ChainID          int64    `json:"chainId"`
 	IServiceCoreAddr string   `json:"iserviceCoreAddr"`
 }

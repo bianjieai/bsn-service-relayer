@@ -2,15 +2,15 @@ package appchains
 
 import (
 	"fmt"
-	"strings"
 	"encoding/json"
 
 	"github.com/spf13/viper"
+	"strings"
 
 	"relayer/appchains/opb"
+	"relayer/config"
 	// "relayer/appchains/ethereum"
 	"relayer/core"
-	"relayer/config"
 	"relayer/store"
 )
 
@@ -48,7 +48,10 @@ func (f *AppChainFactory) BuildAppChain(chainType string, chainParams []byte) (c
 		return nil, nil
 
 	case "fisco":
-		return fisco.BuildFISCOChain(chainParams, f.Store)
+		return nil, nil
+
+	case "opb":
+		return opb.BuildOpbChain(chainParams, f.Store)
 
 	default:
 		return nil, fmt.Errorf("application chain %s not supported", chainType)
@@ -65,7 +68,10 @@ func (f *AppChainFactory) GetChainID(chainType string, chainParams []byte) (chai
 		return "", nil
 
 	case "fisco":
-		return fisco.GetChainIDFromBytes(chainParams)
+		return "", nil
+
+	case "opb":
+		return opb.GetChainIDFromBytes(chainParams)
 
 	default:
 		return "", fmt.Errorf("application chain %s not supported", chainType)
@@ -82,7 +88,10 @@ func (f *AppChainFactory) StoreBaseConfig(chainType string, baseConfig []byte) e
 		return nil
 
 	case "fisco":
-		return fisco.StoreBaseConfig(f.Store, baseConfig)
+		return nil
+
+	case "opb":
+		return opb.StoreBaseConfig(f.Store, baseConfig)
 
 	default:
 		return fmt.Errorf("application chain %s not supported", chainType)
@@ -99,7 +108,10 @@ func (f *AppChainFactory) DeleteChainConfig(chainType string, chainID string) er
 		return nil
 
 	case "fisco":
-		err := f.Store.Delete(fisco.ChainParamsKey(chainID))
+		return nil
+
+	case "opb":
+		err := f.Store.Delete(opb.ChainParamsKey(chainID))
 		if err != nil{
 			return err
 		}
@@ -108,11 +120,12 @@ func (f *AppChainFactory) DeleteChainConfig(chainType string, chainID string) er
 		json.Unmarshal(chainIDsbz, &chainIDs)
 		delete(chainIDs, chainID)
 		bz, err := json.Marshal(chainIDs)
-	    err = f.Store.Set([]byte("chainIDs"), bz)
+		err = f.Store.Set([]byte("chainIDs"), bz)
 		if err != nil{
 			return err
 		}
-		return f.Store.Delete(fisco.ChainParamsKey(chainID))
+		return f.Store.Delete(opb.ChainParamsKey(chainID))
+
 	default:
 		return fmt.Errorf("application chain %s not supported", chainType)
 	}
@@ -128,7 +141,10 @@ func (bc *BaseConfigFactory) NewBaseConfig(chainType string) (config.BaseConfigI
 		return nil, nil
 
 	case "fisco":
-		return fisco.NewBaseConfig(bc.config)
+		return nil, nil
+
+	case "opb":
+		return opb.NewBaseConfig(bc.config)
 
 	default:
 		return nil, fmt.Errorf("application chain %s not supported", chainType)

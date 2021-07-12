@@ -3,7 +3,7 @@ package hub
 import (
 	"github.com/spf13/viper"
 
-	"github.com/irisnet/service-sdk-go/types"
+	"github.com/bianjieai/irita-sdk-go/types"
 
 	cmn "relayer/common"
 	cfg "relayer/config"

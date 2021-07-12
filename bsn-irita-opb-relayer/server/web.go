@@ -35,15 +35,15 @@ func (srv *HTTPService) createRouter() {
 	r := gin.Default()
 
 	api := r.Group("/api/v0")
-	fiscobcos := api.Group("/fiscobcos")
+	opb := api.Group("/opb")
 	{
-		fiscobcos.POST("/chains", srv.AddChain)
-		fiscobcos.POST("/chains/:chainid/update", srv.UpdateChain)
-		fiscobcos.POST("/chains/:chainid/delete", srv.DeleteChain)
-		fiscobcos.POST("/chains/:chainid/start", srv.StartChain)
-		fiscobcos.POST("/chains/:chainid/stop", srv.StopChain)
-		fiscobcos.GET("/chains", srv.GetChains)
-		fiscobcos.GET("/chains/:chainid/status", srv.GetChainStatus)
+		opb.POST("/chains", srv.AddChain)
+		opb.POST("/chains/:chainid/update", srv.UpdateChain)
+		opb.POST("/chains/:chainid/delete", srv.DeleteChain)
+		opb.POST("/chains/:chainid/start", srv.StartChain)
+		opb.POST("/chains/:chainid/stop", srv.StopChain)
+		opb.GET("/chains", srv.GetChains)
+		opb.GET("/chains/:chainid/status", srv.GetChainStatus)
 	}
 
 	r.GET("/health", srv.ShowHealth)

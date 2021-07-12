@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	servicesdk "github.com/irisnet/service-sdk-go"
-	"github.com/irisnet/service-sdk-go/service"
-	"github.com/irisnet/service-sdk-go/types"
-	"github.com/irisnet/service-sdk-go/types/store"
+	servicesdk "github.com/bianjieai/irita-sdk-go"
+	"github.com/bianjieai/irita-sdk-go/modules/service"
+	"github.com/bianjieai/irita-sdk-go/types"
+	"github.com/bianjieai/irita-sdk-go/types/store"
 	"time"
 	"relayer/common"
 	"relayer/core"
@@ -33,7 +33,7 @@ type IritaHubChain struct {
 	Passphrase string
 
 	ServiceInfo   ServiceInfo
-	ServiceClient servicesdk.ServiceClient
+	IritaClient servicesdk.IRITAClient
 }
 
 // NewIritaHubChain constructs a new Irita-Hub chain
@@ -101,8 +101,8 @@ func NewIritaHubChain(
 		Algo:     defaultKeyAlgorithm,
 		KeyDAO:   store.NewFileDAO(keyPath),
 		Level:    "debug",
+		Timeout: 5,
 	}
-
 	hub := IritaHubChain{
 		ChainID:     chainID,
 		NodeRPCAddr: nodeRPCAddr,
@@ -116,7 +116,7 @@ func NewIritaHubChain(
 			ServiceFee:  serviceFee,
 			QoS:         qos,
 		},
-		ServiceClient: servicesdk.NewServiceClient(config),
+		IritaClient: servicesdk.NewIRITAClient(config),
 	}
 
 	return hub
@@ -154,7 +154,7 @@ func (ic IritaHubChain) SendInterchainRequest(
 		return err
 	}
 
-	reqCtxID, resTx, err := ic.ServiceClient.InvokeService(invokeServiceReq, ic.BuildBaseTx())
+	reqCtxID, resTx, err := ic.IritaClient.Service.InvokeService(invokeServiceReq, ic.BuildBaseTx())
 	if err != nil {
 		mysql.TxErrCollection(request.ID, err.Error())
 		return err
@@ -162,7 +162,7 @@ func (ic IritaHubChain) SendInterchainRequest(
 
 	logging.Logger.Infof("request context created on %s: %s", ic.ChainID, reqCtxID)
 
-	requests, err := ic.ServiceClient.QueryRequestsByReqCtx(reqCtxID, 1)
+	requests, err := ic.IritaClient.Service.QueryRequestsByReqCtx(reqCtxID, 1,nil)
 	if err != nil {
 		return err
 	}
@@ -225,7 +225,7 @@ func (ic IritaHubChain) BuildServiceInvocationRequest(
 
 // ResponseListener gets and handles the response of the given request context ID by event subscription
 func (ic IritaHubChain) ResponseListener(reqCtxID string, requestID string, cb core.ResponseCallback) error {
-	response, err := ic.ServiceClient.QueryServiceResponse(requestID)
+	response, err := ic.IritaClient.Service.QueryServiceResponse(requestID)
 	if response.RequestContextID == reqCtxID {
 		resp := core.ResponseAdaptor{
 			StatusCode: 200,
@@ -250,19 +250,19 @@ func (ic IritaHubChain) ResponseListener(reqCtxID string, requestID string, cb c
 
 	logging.Logger.Infof("waiting for the service response on %s", ic.ChainID)
 
-	subscription, err := ic.ServiceClient.SubscribeServiceResponse(reqCtxID, callbackWrapper)
+	subscription, err := ic.IritaClient.Service.SubscribeServiceResponse(reqCtxID, callbackWrapper)
 	if err != nil {
 		return err
 	}
 
 	go func() {
 		for {
-			reqCtx, err := ic.ServiceClient.QueryRequestContext(reqCtxID)
-			status, err2 := ic.ServiceClient.Status(context.Background())
-			req, err3 := ic.ServiceClient.QueryServiceRequest(requestID)
+			reqCtx, err := ic.IritaClient.Service.QueryRequestContext(reqCtxID)
+			status, err2 := ic.IritaClient.Status(context.Background())
+			req, err3 := ic.IritaClient.Service.QueryServiceRequest(requestID)
 			if err != nil || err2 != nil || err3 != nil || reqCtx.BatchState == "BATCH_COMPLETED" || status.SyncInfo.LatestBlockHeight > req.ExpirationHeight {
 				logging.Logger.Infof("HUB Unsubscribe RequestID is %s", requestID)
-				_ = ic.ServiceClient.Unsubscribe(subscription)
+				_ = ic.IritaClient.Unsubscribe(subscription)
 				break
 			}
 			time.Sleep(time.Second)
