@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Callback",
+  "type": "object",
+  "required": [
+    "address",
+    "method"
+  ],
+  "properties": {
+    "address": {
+      "$ref": "#/definitions/HumanAddr"
+    },
+    "method": {
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "HumanAddr": {
+      "type": "string"
+    }
+  }
+}
