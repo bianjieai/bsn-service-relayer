@@ -28,3 +28,8 @@ func Hex2Decimal(hex string) (int64, error) {
 
 	return i.Int64(), nil
 }
+
+// GetChainID returns the unique chain id from the specified chain params
+func GetDestID(chainType string, subChainID string, chainID string) string {
+	return fmt.Sprintf("%s-%s-%s", chainType, subChainID, chainID)
+}

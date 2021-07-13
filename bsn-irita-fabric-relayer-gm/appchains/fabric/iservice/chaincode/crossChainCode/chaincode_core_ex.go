@@ -14,40 +14,37 @@ import (
 
 requestID 使用交易ID
 */
-func (c *CrossChainCode) callService(stub shim.ChaincodeStubInterface, args []string) peer.Response {
-
+func (c *CrossChainCode) sendRequest(stub shim.ChaincodeStubInterface, args []string) peer.Response {
 	if len(args) == 0 {
 		return shim.Error("the args cannot be empty")
 	}
-
-	reqInfo := []byte(args[0])
+	if len(args[0]) == 0 {
+		return shim.Error("the endpointInfo cannot be empty")
+	}
+	if len(args[1]) == 0 {
+		return shim.Error("the method cannot be empty")
+	}
+	if len(args[2]) == 0 {
+		return shim.Error("the callData cannot be empty")
+	}
 
 	serReq := &serviceRequest{}
-	err := json.Unmarshal(reqInfo, serReq)
-	if err != nil {
-		return shim.Error("the args serialize failed")
-	}
 
 	txId := stub.GetTxID()
 	fmt.Println("txID:", txId)
 	serReq.RequestId = txId
+	serReq.EndpointInfo = args[0]
+	serReq.Method = args[1]
+	serReq.CallData = args[2]
 
-	//query service
-	key := marketKey(serReq.ServiceName)
-	serb, err := stub.GetState(key)
-	if err != nil || len(serb) == 0 {
-		return shim.Error("the service invalid")
-	}
+	callBackInfo := &CallBackInfo{}
+	callBackInfo.ChainCode = args[3]
+	callBackInfo.FuncName = args[4]
 
-	si := &serviceInfo{}
-	err = json.Unmarshal(serb, si)
-	if err != nil {
-		return shim.Error("the service invalid")
-	}
+	serReq.CallBack = callBackInfo
 
 	callser := &serviceCallInfo{
 		Request: serReq,
-		Service: si.Service,
 		Type:    Core_Type,
 	}
 
@@ -88,6 +85,10 @@ func (c *CrossChainCode) setResponse(stub shim.ChaincodeStubInterface, args []st
 	err = json.Unmarshal(ser, serInfo)
 	if err != nil {
 		return shim.Error("the requestID invalid")
+	}
+
+	if serInfo.Response != nil{
+		return shim.Error("duplicated response!")
 	}
 
 	serInfo.Response = serReq

@@ -1,12 +1,10 @@
 
 
-peer chaincode package -n cc_cross -p relayer/appchains/fabric/iservice/chaincode/ -v 0.1 cc_cross.0.1.pak
+peer chaincode package -n cc_cross -p relayer/appchains/fabric/iservice/chaincode/cmd/ -v 0.1 cc_cross.0.1.pak
 
 peer chaincode install cc_cross.0.1.pak
 
 peer chaincode instantiate -o order1.ordernode.bsnbase.com:17051 -C netchannel -n cc_cross -v 0.1 -c '{"Args":["init"]}' --tls true --cafile /etc/hyperledger/fabric/certs/ordererOrganizations/ordernode.bsnbase.com/orderers/order1.ordernode.bsnbase.com/tls/tlsintermediatecerts/tls-ca-ordernode-bsnbase-com-15901-2.pem
-
-peer chaincode instantiate -o order1.ttgmordernode.bsnbase.com:17151 -C channel000001 -n cc_cross -v 0.1 -c '{"Args":["init"]}' --tls true --cafile /etc/hyperledger/fabric/certs/ordererOrganizations/ttgmordernode.bsnbase.com/tls/intermediatecerts/ca-ttgmordernode-bsnbase-com-2.pem
 
 peer chaincode upgrade -o order1.ordernode.bsnbase.com:17051 -C netchannel -n cc_cross -v 0.2 -c '{"Args":["init"]}' --tls true --cafile /etc/hyperledger/fabric/certs/ordererOrganizations/ordernode.bsnbase.com/orderers/order1.ordernode.bsnbase.com/tls/tlsintermediatecerts/tls-ca-ordernode-bsnbase-com-15901-2.pem
 
