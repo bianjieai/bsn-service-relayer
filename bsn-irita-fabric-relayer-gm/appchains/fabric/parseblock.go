@@ -2,7 +2,6 @@ package fabric
 
 import (
 	"crypto/sha256"
-	x509 "github.com/tjfoc/gmsm/x509"
 	"encoding/asn1"
 	"encoding/hex"
 	"encoding/pem"
@@ -14,6 +13,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go/ledger/rwset/kvrwset"
 	"github.com/hyperledger/fabric-protos-go/msp"
 	"github.com/hyperledger/fabric-protos-go/peer"
+	x509 "github.com/tjfoc/gmsm/x509"
 	"relayer/appchains/fabric/utils"
 )
 
@@ -108,7 +108,7 @@ func parseTransaction(envBytes []byte) (*TransactionInfo, error) {
 				return nil, err
 			}
 
-			////获取交易的提交者
+			//获取交易的提交者
 			//var subject string //mspid
 			//if _, subject, err = decodeSerializedIdentity(AShdr.Creator); err != nil {
 			//	return nil, err

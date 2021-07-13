@@ -28,9 +28,6 @@ type AppChainI interface {
 
 	// send the response to the application chain
 	SendResponse(requestID string, response ResponseI) error
-
-	// iService market interface
-	IServiceMarketI
 }
 
 // AppChainFactoryI abstracts the application chain operation interface
@@ -48,13 +45,16 @@ type AppChainFactoryI interface {
 // InterchainRequest defines the interchain service request
 type InterchainRequest struct {
 	ID              string // request ID
-	ChainID         string // chain ID
-	ContractAddress string // contract address
-	ServiceName     string // service name
-	Provider        string // provider address
-	Input           string // request input
-	Timeout         uint64 // request timeout
-	ServiceFeeCap   string // service fee cap
+	SourceChainID   string // source chain ID
+	DestChainID     string // target chain ID
+	DestSubChainID  string // target sub chain ID
+	DestChainType  string // target chain type
+	EndpointAddress string // end point address
+	EndpointType    string // end point type
+	Method          string // method name
+	CallData        []byte // target method name and json string of arguments
+	TxHash          string // source transaction hash
+	Sender          string // message sender
 }
 
 // ResponseI defines the response related interfaces
@@ -73,28 +73,6 @@ type KeyManager interface {
 	Export(name, passphrase string) (keyArmor string, err error)
 	Recover(name, passphrase, mnemonic string) (addr string, err error)
 }
-
-// IServiceMarketI defines the interface for the iService market on the application chain
-type IServiceMarketI interface {
-	// AddServiceBinding add a service binding to the iService market
-	AddServiceBinding(serviceName, schemas, provider, serviceFee string, qos uint64) error
-
-	// update the specified service binding
-	UpdateServiceBinding(serviceName, provider, serviceFee string, qos uint64) error
-
-	// get the service binding by the given service name from the iService market
-	GetServiceBinding(serviceName string) (ServiceBindingI, error)
-}
-
-// ServiceBindingI defines the iService binding interface
-type ServiceBindingI interface {
-	GetServiceName() string // service name getter
-	GetSchemas() string     // service schemas
-	GetProvider() string    // service provider
-	GetServiceFee() string  // service fee
-	GetQoS() uint64         // quality of service
-}
-
 // InterchainRequestHandler defines the interchain request handler interface
 type InterchainRequestHandler func(chainID string, request InterchainRequest, txHash string) error
 

@@ -17,7 +17,7 @@ const (
 	_TabName_Relayer = "tb_irita_fabric_relayer_gm"
 	_TabName_cc_Tx   = "tb_irita_crosschain_tx"
 
-	_Create_CrossChain_Tx_Sql = `CREATE TABLE %s (
+	_Create_CrossChain_Tx_Sql = `CREATE TABLE %s(
   funique_id bigint(20) NOT NULL AUTO_INCREMENT,
   request_id varchar(255) NOT NULL DEFAULT '' COMMENT '请求唯一id',
   from_chainid varchar(255) NOT NULL DEFAULT '' COMMENT '起始链ID',
@@ -36,7 +36,7 @@ const (
   PRIMARY KEY (funique_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;`
 
-	_Create_Relayer_Sql = `CREATE TABLE %s (
+	_Create_Relayer_Sql = `CREATE TABLE  %s (
   Id int(11) NOT NULL AUTO_INCREMENT,
   ChainId varchar(255) NOT NULL DEFAULT '0' COMMENT '链ID',
   AppCode varchar(255) DEFAULT NULL COMMENT '应用Code',

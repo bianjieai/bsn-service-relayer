@@ -50,13 +50,6 @@ func (srv *HTTPService) createRouter() {
 		fabric.POST("/updateAppChain", srv.UpdateChain)
 	}
 
-	ser := api.Group("/service")
-	{
-		ser.POST("/bindings/:chainid", srv.AddServiceBinding)
-		ser.PUT("/bindings/:chainid/:svcname", srv.UpdateServiceBinding)
-		ser.GET("/bindings/:chainid/:svcname", srv.GetServiceBinding)
-	}
-
 	//r.POST("/chains", srv.AddChain)
 	//r.POST("/chains/:chainid/delete", srv.DeleteChain)
 
@@ -155,103 +148,6 @@ func (srv *HTTPService) UpdateChain(c *gin.Context) {
 
 	onSuccess(c, nil)
 }
-
-func (srv *HTTPService) AddServiceBinding(c *gin.Context) {
-	bodyBytes, err := ioutil.ReadAll(c.Request.Body)
-	if err != nil {
-		logging.Logger.Errorf(err.Error())
-		c.JSON(http.StatusBadRequest, "invalid JSON payload")
-		return
-	}
-
-	logging.Logger.Infof("AddServiceBinding data is %s", string(bodyBytes))
-
-	chainID := c.Param("chainid")
-
-	err = srv.AppChain.AddServiceBinding(chainID, bodyBytes)
-	if err != nil {
-		onError(c, err)
-		return
-	}
-
-	onSuccess(c, nil)
-}
-
-func (srv *HTTPService) UpdateServiceBinding(c *gin.Context) {
-	bodyBytes, err := ioutil.ReadAll(c.Request.Body)
-	if err != nil {
-		logging.Logger.Errorf(err.Error())
-		c.JSON(http.StatusBadRequest, "invalid JSON payload")
-		return
-	}
-
-	logging.Logger.Infof("UpdateServiceBinding data is %s", string(bodyBytes))
-
-	chainID := c.Param("chainid")
-
-	err = srv.AppChain.UpdateServiceBinding(chainID, bodyBytes)
-	if err != nil {
-		onError(c, err)
-		return
-	}
-
-	onSuccess(c, nil)
-}
-
-func (srv *HTTPService) GetServiceBinding(c *gin.Context) {
-	chainID := c.Param("chainid")
-	serviceName := c.Param("servicename")
-
-	binding, err := srv.AppChain.GetServiceBinding(chainID, serviceName)
-	if err != nil {
-		onError(c, err)
-		return
-	}
-
-	onSuccess(c, binding)
-}
-
-//func (srv *HTTPService) StartChain(c *gin.Context) {
-//	chainID := c.Param("chainid")
-//
-//	err := srv.ChainManager.StartChain(chainID)
-//	if err != nil {
-//		onError(c, err)
-//		return
-//	}
-//
-//	onSuccess(c, nil)
-//}
-//
-//func (srv *HTTPService) StopChain(c *gin.Context) {
-//	chainID := c.Param("chainid")
-//
-//	err := srv.ChainManager.StopChain(chainID)
-//	if err != nil {
-//		onError(c, err)
-//		return
-//	}
-//
-//	onSuccess(c, nil)
-//}
-
-//func (srv *HTTPService) GetChains(c *gin.Context) {
-//	chains := srv.ChainManager.GetChains()
-//
-//	onSuccess(c, chains)
-//}
-
-//func (srv *HTTPService) GetChainStatus(c *gin.Context) {
-//	chainID := c.Param("chainid")
-//
-//	state, height, err := srv.ChainManager.GetChainStatus(chainID)
-//	if err != nil {
-//		onError(c, err)
-//		return
-//	}
-//
-//	onSuccess(c, ChainStatus{State: state, Height: height})
-//}
 
 // ShowHealth returns the health state
 func (srv *HTTPService) ShowHealth(c *gin.Context) {
