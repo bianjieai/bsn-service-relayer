@@ -1,4 +1,6 @@
 use std::u64;
+use json::object;
+use base64::encode;
 
 use cosmwasm_std::{
     attr,to_binary,HumanAddr, Binary, Deps, DepsMut, Env, HandleResponse, InitResponse, MessageInfo, StdResult,CosmosMsg, WasmMsg
@@ -81,10 +83,11 @@ pub fn set_response(deps: DepsMut,request_id: String, err_msg: String, output: S
         REQUESTS.save(deps.storage, &request_id, &true)?;
 
         let callback = CALLBACKS.load(deps.storage, &request_id)?;
-        let msg = to_binary(&result)?;
+        let result_obg = object!{ callback.method.as_str() => object!{"request_id"=>request_id,"output"=>result}};
+
         let msgs = vec![CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: callback.address,
-            msg: msg,
+            msg: Binary::from(result_obg.to_string().as_bytes()),
             send: vec![],
         })];
         
