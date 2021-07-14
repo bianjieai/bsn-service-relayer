@@ -3,16 +3,19 @@
   "title": "State",
   "type": "object",
   "required": [
-    "count",
-    "owner"
+    "core_contract",
+    "owner",
+    "target_contract"
   ],
   "properties": {
-    "count": {
-      "type": "integer",
-      "format": "int32"
+    "core_contract": {
+      "$ref": "#/definitions/HumanAddr"
     },
     "owner": {
       "$ref": "#/definitions/CanonicalAddr"
+    },
+    "target_contract": {
+      "$ref": "#/definitions/HumanAddr"
     }
   },
   "definitions": {
@@ -22,6 +25,9 @@
     },
     "CanonicalAddr": {
       "$ref": "#/definitions/Binary"
+    },
+    "HumanAddr": {
+      "type": "string"
     }
   }
 }

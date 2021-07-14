@@ -5,29 +5,40 @@
     {
       "type": "object",
       "required": [
-        "increment"
+        "hello"
       ],
       "properties": {
-        "increment": {
-          "type": "object"
+        "hello": {
+          "type": "object",
+          "required": [
+            "words"
+          ],
+          "properties": {
+            "words": {
+              "type": "string"
+            }
+          }
         }
       }
     },
     {
       "type": "object",
       "required": [
-        "reset"
+        "call_back"
       ],
       "properties": {
-        "reset": {
+        "call_back": {
           "type": "object",
           "required": [
-            "count"
+            "request_id",
+            "words"
           ],
           "properties": {
-            "count": {
-              "type": "integer",
-              "format": "int32"
+            "request_id": {
+              "type": "string"
+            },
+            "words": {
+              "type": "string"
             }
           }
         }
