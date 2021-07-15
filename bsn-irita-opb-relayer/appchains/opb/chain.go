@@ -155,16 +155,9 @@ func (f *OpbChain) GetHeight() int64 {
 
 // SendResponse implements AppChainI
 func (opb *OpbChain) SendResponse(requestID string, response core.ResponseI) error {
-	requestIDBytes, err := hex.DecodeString(requestID)
-	if err != nil {
-		return err
-	}
-
-	var requestID32Bytes [32]byte
-	copy(requestID32Bytes[:], requestIDBytes)
 	execAbi := wasm.NewContractABI().
 		WithMethod("set_response").
-		WithArgs("request_id", requestID32Bytes).
+		WithArgs("request_id", requestID).
 		WithArgs("err_msg", response.GetErrMsg()).
 		WithArgs("output", response.GetOutput())
 	resultTx, err := opb.OpbClient.WASM.Execute(opb.Config.ChainParams.IServiceCoreAddr, execAbi, nil, opb.BuildBaseTx())
