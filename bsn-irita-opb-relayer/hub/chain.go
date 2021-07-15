@@ -48,6 +48,7 @@ func NewIritaHubChain(
 	schemas string,
 	provider string,
 	serviceFee string,
+	timeout uint,
 	qos uint64,
 ) IritaHubChain {
 	if len(chainID) == 0 {
@@ -67,19 +68,23 @@ func NewIritaHubChain(
 	}
 
 	if len(serviceName) == 0 {
-		keyPath = defaultServiceName
+		serviceName = defaultServiceName
 	}
 
 	if len(schemas) == 0 {
-		keyPath = defaultSchemas
+		schemas = defaultSchemas
 	}
 
 	if len(provider) == 0 {
-		keyPath = defaultProvider
+		provider = defaultProvider
 	}
 
 	if len(serviceFee) == 0 {
-		keyPath = defaultServiceFee
+		serviceFee = defaultServiceFee
+	}
+
+	if timeout == 0 {
+		timeout = defaultTimeout
 	}
 
 	if qos == 0 {
@@ -101,7 +106,7 @@ func NewIritaHubChain(
 		Algo:     defaultKeyAlgorithm,
 		KeyDAO:   store.NewFileDAO(keyPath),
 		Level:    "debug",
-		Timeout: 5,
+		Timeout:  timeout,
 	}
 	hub := IritaHubChain{
 		ChainID:     chainID,
@@ -135,6 +140,7 @@ func BuildIritaHubChain(config Config) IritaHubChain {
 		config.Schemas,
 		config.Provider,
 		config.ServiceFee,
+		config.Timeout,
 		config.QoS,
 	)
 }
