@@ -1,6 +1,7 @@
+
 use std::u64;
 use json::object;
-use base64::encode;
+use sha2::{Sha256, Digest};
 
 use cosmwasm_std::{
     attr,to_binary,HumanAddr, Binary, Deps, DepsMut, Env, HandleResponse, InitResponse, MessageInfo, StdResult,CosmosMsg, WasmMsg
@@ -52,7 +53,12 @@ pub fn send_request(deps: DepsMut,endpoint_info: String, _method: String, call_d
     let chain_id = CHAINID.load(deps.storage)?;
     let mut sequence = REQUESTSEQUENCE.load(deps.storage)?;
 
-    let request_id = chain_id+&sequence.to_string();
+    let request_id_str = chain_id+&sequence.to_string();
+
+    let mut hasher = Sha256::new();
+    hasher.input(&request_id_str.into_bytes());
+    let output = hasher.result();
+    let request_id = format!("{:X}",output);
 
     sequence += 1;
     REQUESTSEQUENCE.save(deps.storage, &sequence)?;
@@ -83,7 +89,7 @@ pub fn set_response(deps: DepsMut,request_id: String, err_msg: String, output: S
         REQUESTS.save(deps.storage, &request_id, &true)?;
 
         let callback = CALLBACKS.load(deps.storage, &request_id)?;
-        let result_obg = object!{ callback.method.as_str() => object!{"request_id"=>request_id,"output"=>result}};
+        let result_obg = object!{ callback.method.as_str() => object!{"request_id"=>request_id,"words"=>result}};
 
         let msgs = vec![CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: callback.address,
