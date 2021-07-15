@@ -13,7 +13,7 @@ pub struct InitMsg {
 #[serde(rename_all = "snake_case")]
 pub enum HandleMsg {
     Hello { words: String},
-    CallBack { words: String},
+    CallBack { request_id: String, words: String},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

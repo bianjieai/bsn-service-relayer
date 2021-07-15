@@ -1,4 +1,4 @@
-use cosmwasm_std::{Binary, CosmosMsg, Deps, DepsMut, Env, HandleResponse, HumanAddr, InitResponse, MessageInfo, StdResult, WasmMsg, to_binary};
+use cosmwasm_std::{attr, Binary, CosmosMsg, Deps, DepsMut, Env, HandleResponse, HumanAddr, InitResponse, MessageInfo, StdResult, WasmMsg, to_binary};
 use json::object;
 use base64::encode;
 
@@ -33,7 +33,7 @@ pub fn handle(
 ) -> Result<HandleResponse, ContractError> {
     match msg {
         HandleMsg::Hello{words} => try_hello(deps,words,env.contract.address),
-        HandleMsg::CallBack{words} => call_back(deps,words),
+        HandleMsg::CallBack{request_id, words} => call_back(deps, request_id, words),
     }
 }
 
@@ -59,11 +59,11 @@ pub fn try_hello(deps: DepsMut, words: String, self_address: HumanAddr) -> Resul
     })
 }
 
-pub fn call_back(_deps: DepsMut, words: String) -> Result<HandleResponse, ContractError> {
+pub fn call_back(_deps: DepsMut, request_id: String, words: String) -> Result<HandleResponse, ContractError> {
     Ok(HandleResponse {
         messages: vec![],
-        data: Some(Binary::from(words.as_bytes())),
-        attributes: vec![],
+        data: None,
+        attributes: vec![attr("request_id",request_id),attr("words",words)],
     })
 }
 
